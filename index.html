@@ -78,9 +78,23 @@
   #panes { flex:1; display:flex; min-width:0; min-height:0; }
   .pane { flex:1; min-width:0; display:flex; flex-direction:column; border-right:1px solid var(--border); background:var(--bg); }
   .pane:last-child { border-right:none; }
-  .pane-toolbar { display:none; padding:8px 16px; border-bottom:1px solid var(--border); background:var(--bg-header); justify-content:space-between; align-items:center; }
+  .pane-toolbar { display:none; padding:8px 16px; border-bottom:1px solid var(--border); background:var(--bg-header); justify-content:space-between; align-items:center; gap:8px; }
   body.compare-mode .pane-toolbar { display:flex; }
   .pane-ref-btn { background:none; border:1px solid var(--border); color:var(--gold); padding:4px 10px; border-radius:6px; font-family:'Fraunces'; font-size:13px; cursor:pointer; }
+  .pane-toolbar { position:relative; }
+  .ref-picker { display:none; position:absolute; top:calc(100% + 4px); left:8px; width:280px; max-width:80vw; max-height:360px; background:var(--bg-header); border:1px solid var(--panel-border); border-radius:10px; box-shadow:0 12px 30px rgba(0,0,0,.45); z-index:25; flex-direction:column; overflow:hidden; }
+  .ref-picker.open { display:flex; }
+  .ref-picker .rp-search { padding:8px; border-bottom:1px solid var(--border); flex-shrink:0; }
+  .ref-picker .rp-search input { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:6px; padding:6px 8px; font-size:13px; color:var(--ink); font-family:'Source Serif 4'; }
+  .ref-picker .rp-books { flex:1; overflow-y:auto; padding:4px 6px; max-height:180px; }
+  .ref-picker .rp-book-btn { display:block; width:100%; text-align:left; padding:6px 8px; border-radius:6px; border:none; background:none; color:#e8e1d0cc; font-size:13px; cursor:pointer; font-family:'Source Serif 4'; }
+  .ref-picker .rp-book-btn:hover { background:#c9a86711; color:var(--ink); }
+  .ref-picker .rp-book-btn.active { background:#c9a86722; color:var(--gold); }
+  .ref-picker .rp-chapters { border-top:1px solid var(--border); padding:8px; flex-shrink:0; max-height:150px; overflow-y:auto; }
+  .ref-picker .rp-chapter-grid { display:flex; flex-wrap:wrap; gap:5px; }
+  .ref-picker .rp-ch-btn { width:30px; height:28px; display:grid; place-items:center; border-radius:5px; border:1px solid var(--border); background:var(--bg); color:var(--ink-dim); font-size:12px; cursor:pointer; }
+  .ref-picker .rp-ch-btn:hover { border-color:var(--gold); color:var(--ink); }
+  .ref-picker .rp-ch-btn.active { background:var(--gold); color:var(--bg); border-color:var(--gold); }
   .reader-main { flex:1; overflow-y:auto; padding:24px 20px 80px; }
   @media(min-width:900px){ .reader-main{ padding:36px 48px 80px; } }
   .reader-main::-webkit-scrollbar{ width:8px; } .reader-main::-webkit-scrollbar-thumb{ background:#c9a86744; border-radius:4px; }
@@ -117,6 +131,10 @@
   .ai-head { padding:16px 18px; border-bottom:1px solid var(--panel-border); display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
   .ai-head h2 { font-family:'Fraunces'; font-size:16px; color:var(--ink); margin:0; font-weight:500; }
   .ai-head h2 span { color:var(--gold); font-weight:600; }
+  .model-badge { font-family:'Source Serif 4'; font-size:10.5px; color:var(--ink-faint); font-weight:400; margin-top:3px; letter-spacing:.01em; }
+  .model-badge.ready::before { content:"● "; color:#7fd99a; }
+  .model-badge.loading::before { content:"● "; color:var(--gold); }
+  .model-badge.error::before { content:"● "; color:#e08a8a; }
   #closeAiBtn { background:none; border:none; color:var(--ink-dim); cursor:pointer; padding:6px; }
   .ai-tabs { display:flex; gap:4px; padding:10px 12px; border-bottom:1px solid var(--panel-border); flex-shrink:0; overflow-x:auto; }
   .ai-tab { flex:1; min-width:70px; padding:8px 6px; border-radius:8px; border:1px solid transparent; background:transparent; color:var(--ink-dim); font-family:'Fraunces'; font-size:11.5px; cursor:pointer; transition:.2s; white-space:nowrap; }
@@ -149,6 +167,11 @@
   .msg.user { align-self:flex-end; background:var(--gold); color:var(--bg); border-bottom-right-radius:4px; }
   .msg.ai { align-self:flex-start; background:#1e2a4a; border:1px solid #2a3658; color:var(--ink); border-bottom-left-radius:4px; }
   .ai-empty { text-align:center; padding:30px 16px; color:var(--ink-dim); }
+  .thinking-dots { display:inline-flex; align-items:center; gap:3px; color:var(--ink-dim); font-style:italic; }
+  .thinking-dots i { width:4px; height:4px; border-radius:50%; background:var(--gold); display:inline-block; animation:tdot 1.1s infinite ease-in-out; }
+  .thinking-dots i:nth-child(2){ animation-delay:.15s; } .thinking-dots i:nth-child(3){ animation-delay:.3s; }
+  @keyframes tdot{ 0%,80%,100%{ opacity:.25; transform:translateY(0); } 40%{ opacity:1; transform:translateY(-2px); } }
+  #aiChatInput:disabled, #aiChatSend:disabled { opacity:.6; cursor:not-allowed; }
   .ai-action-btn { width:100%; padding:10px; border-radius:10px; border:1px solid #2f3d66; background:#1d2744; color:var(--gold-soft); font-family:'Fraunces'; font-size:13px; cursor:pointer; }
   .ai-action-btn:hover { background:var(--gold); color:var(--bg); border-color:var(--gold); }
   #aiChatForm { display:flex; gap:8px; padding:12px; border-top:1px solid var(--panel-border); background:#0f172c; flex-shrink:0; }
@@ -180,7 +203,7 @@
       <button id="bookmarkBtn" title="Bookmark this chapter">Bookmark</button>
       <button id="openAiBtn">Study</button>
       <button id="compareBtn">Compare</button>
-      <select id="versionSelect"><option value="kjv">KJV</option><option value="web" selected>WEB</option></select>
+      <select id="versionSelect"></select>
     </div>
   </header>
 
@@ -196,19 +219,35 @@
 
     <div id="panes">
       <div class="pane" data-pane="a">
-        <div class="pane-toolbar"><button class="pane-ref-btn font-display">Genesis 1</button><span style="font-size:11px;color:var(--ink-dim)">WEB</span></div>
+        <div class="pane-toolbar">
+          <button class="pane-ref-btn font-display" data-pane="a">Genesis 1</button>
+          <span style="font-size:11px;color:var(--ink-dim)" class="pane-version-label" data-pane="a">WEB</span>
+          <div class="ref-picker" data-pane="a">
+            <div class="rp-search"><input type="text" class="rp-search-input" placeholder="Search books" /></div>
+            <div class="rp-books"></div>
+            <div class="rp-chapters"><div class="rp-chapter-grid"></div></div>
+          </div>
+        </div>
         <div class="reader-main" id="main-a"><div class="reader-inner"></div></div>
         <div class="pager"><button class="prev-btn" data-pane="a">Prev</button><span class="pager-label font-display" style="font-size:12px;color:var(--ink-dim)"></span><button class="next-btn" data-pane="a">Next</button></div>
       </div>
       <div class="pane" data-pane="b" style="display:none">
-        <div class="pane-toolbar"><button class="pane-ref-btn font-display">Genesis 1</button><span style="font-size:11px;color:var(--ink-dim)">KJV</span></div>
+        <div class="pane-toolbar">
+          <button class="pane-ref-btn font-display" data-pane="b">Genesis 1</button>
+          <select id="versionSelectB" style="background:transparent;color:var(--ink-dim);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-family:'Source Serif 4';font-size:11px;"></select>
+          <div class="ref-picker" data-pane="b">
+            <div class="rp-search"><input type="text" class="rp-search-input" placeholder="Search books" /></div>
+            <div class="rp-books"></div>
+            <div class="rp-chapters"><div class="rp-chapter-grid"></div></div>
+          </div>
+        </div>
         <div class="reader-main" id="main-b"><div class="reader-inner"></div></div>
         <div class="pager"><button class="prev-btn" data-pane="b">Prev</button><span class="pager-label font-display" style="font-size:12px;color:var(--ink-dim)"></span><button class="next-btn" data-pane="b">Next</button></div>
       </div>
     </div>
 
     <aside id="aiPanel">
-      <div class="ai-head"><h2><span>Study</span> Assistant</h2><button id="closeAiBtn">Close</button></div>
+      <div class="ai-head"><h2><span>Study</span> Assistant<div class="model-badge ready">Free AI — no signup, no key</div></h2><button id="closeAiBtn">Close</button></div>
       <div class="ai-tabs">
         <button class="ai-tab active" data-tab="chapter">Chapter</button>
         <button class="ai-tab" data-tab="verse">Verse</button>
@@ -235,23 +274,80 @@
     ["Hebrews","Hebrews",13,"letters","Better covenant"],["James","James",5,"letters","Faith works"],["1 Peter","1 Peter",5,"letters","Suffering"],["2 Peter","2 Peter",3,"letters","Truth"],["1 John","1 John",5,"letters","Love"],["2 John","2 John",1,"letters","Truth"],["3 John","3 John",1,"letters","Hospitality"],["Jude","Jude",1,"letters","Contend"],
     ["Revelation","Revelation",22,"prophecy","Victory"]
   ];
-  const VERSIONS = [["kjv","KJV"],["web","WEB"]];
-  const SCRIPTURE_KB = [
-    {ref:"John 3:16", text:"For God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life.", topics:["salvation","love","faith","eternal life"]},
-    {ref:"Romans 8:28", text:"We know that all things work together for good for those who love God, to those who are called according to his purpose.", topics:["suffering","purpose","hope"]},
-    {ref:"Philippians 4:6-7", text:"In nothing be anxious, but in everything, by prayer and petition with thanksgiving, let your requests be made known to God.", topics:["anxiety","peace","prayer","fear"]},
-    {ref:"Jeremiah 29:11", text:"For I know the thoughts that I think toward you, says Yahweh, thoughts of peace, and not of evil, to give you hope and a future.", topics:["future","hope","plans"]},
-    {ref:"Psalm 23:1-3", text:"Yahweh is my shepherd; I shall lack nothing. He makes me lie down in green pastures.", topics:["peace","provision","rest"]},
-    {ref:"1 Corinthians 13:4-7", text:"Love is patient and is kind. Love does not envy. Love does not brag, is not proud.", topics:["love","patience"]},
-    {ref:"Isaiah 41:10", text:"Do not be afraid, for I am with you. Do not be dismayed, for I am your God. I will strengthen you.", topics:["fear","strength","courage"]},
-    {ref:"Matthew 11:28-30", text:"Come to me, all you who labor and are heavily burdened, and I will give you rest.", topics:["rest","burden","weary"]},
-    {ref:"Romans 6:23", text:"For the wages of sin is death, but the free gift of God is eternal life in Christ Jesus our Lord.", topics:["sin","death","gift","salvation"]},
-    {ref:"Ephesians 2:8-9", text:"For by grace you have been saved through faith, and that not of yourselves; it is the gift of God.", topics:["grace","faith","saved"]},
-    {ref:"Proverbs 3:5-6", text:"Trust in Yahweh with all your heart, and do not lean on your own understanding.", topics:["trust","wisdom","guidance"]},
-    {ref:"1 John 1:9", text:"If we confess our sins, he is faithful and righteous to forgive us the sins and to cleanse us from all unrighteousness.", topics:["forgiveness","confession","sin"]},
-    {ref:"Psalm 46:1", text:"God is our refuge and strength, a very present help in trouble.", topics:["refuge","strength","help"]},
-    {ref:"John 14:6", text:"Jesus said to him, I am the way, the truth, and the life. No one comes to the Father, except through me.", topics:["way","truth","life","jesus"]}
+  // Public-domain translations confirmed available on bible-api.com (the same
+  // free, keyless, CORS-enabled API this app already uses for verse text).
+  // English translations first, then other languages sharing the same API.
+  const VERSIONS = [
+    ["web","WEB — World English Bible"],
+    ["webbe","WEBBE — World English Bible, British Edition"],
+    ["kjv","KJV — King James Version"],
+    ["asv","ASV — American Standard Version"],
+    ["bbe","BBE — Bible in Basic English"],
+    ["darby","DARBY — Darby Translation"],
+    ["ylt","YLT — Young's Literal Translation"],
+    ["wbt","WBT — Webster's Bible"],
+    ["oeb-us","OEB-US — Open English Bible (US)"],
+    ["oeb-cw","OEB-CW — Open English Bible (Commonwealth)"],
+    ["clementine","Clementine — Latin Vulgate (Latin)"],
+    ["almeida","Almeida — João Ferreira de Almeida (Portuguese)"],
+    ["rccv","RCCV — Cornilescu Version (Romanian)"]
   ];
+  // Topic index used to find candidate cross-references for a chatbot question.
+  // Deliberately holds ONLY references and topic tags, never verse text --
+  // the actual text is fetched live from bible-api.com at answer time (see
+  // fetchVerseText/findRelatedVerses below), in whichever translation the
+  // reader currently has open. This means citations are always sourced fresh
+  // from the real API instead of relying on text baked into this file, which
+  // could drift from what a given translation actually says.
+  const SCRIPTURE_TOPIC_INDEX = [
+    {ref:"John 3:16", topics:["salvation","love","faith","eternal life"]},
+    {ref:"Romans 8:28", topics:["suffering","purpose","hope"]},
+    {ref:"Philippians 4:6-7", topics:["anxiety","peace","prayer","fear"]},
+    {ref:"Jeremiah 29:11", topics:["future","hope","plans"]},
+    {ref:"Psalm 23:1-3", topics:["peace","provision","rest"]},
+    {ref:"1 Corinthians 13:4-7", topics:["love","patience"]},
+    {ref:"Isaiah 41:10", topics:["fear","strength","courage"]},
+    {ref:"Matthew 11:28-30", topics:["rest","burden","weary"]},
+    {ref:"Romans 6:23", topics:["sin","death","gift","salvation"]},
+    {ref:"Ephesians 2:8-9", topics:["grace","faith","saved"]},
+    {ref:"Proverbs 3:5-6", topics:["trust","wisdom","guidance"]},
+    {ref:"1 John 1:9", topics:["forgiveness","confession","sin"]},
+    {ref:"Psalm 46:1", topics:["refuge","strength","help"]},
+    {ref:"John 14:6", topics:["way","truth","life","jesus"]},
+    {ref:"Romans 12:2", topics:["renewal","mind","transformation","world"]},
+    {ref:"Galatians 5:22-23", topics:["fruit","spirit","kindness","gentleness","patience"]},
+    {ref:"James 1:2-4", topics:["trials","perseverance","testing","joy"]},
+    {ref:"2 Corinthians 5:17", topics:["new creation","change","identity"]},
+    {ref:"Psalm 34:18", topics:["brokenhearted","grief","comfort"]},
+    {ref:"Matthew 6:33", topics:["priorities","kingdom","provision"]},
+    {ref:"1 Peter 5:7", topics:["anxiety","worry","care"]},
+    {ref:"Joshua 1:9", topics:["courage","fear","strength"]},
+    {ref:"Colossians 3:23", topics:["work","purpose","diligence"]},
+    {ref:"Micah 6:8", topics:["justice","mercy","humility"]},
+    {ref:"Psalm 139:14", topics:["identity","worth","creation"]},
+    {ref:"Hebrews 11:1", topics:["faith","hope","assurance"]},
+    {ref:"Matthew 5:9", topics:["peace","reconciliation","conflict"]},
+    {ref:"James 4:7", topics:["temptation","resistance","surrender"]},
+    {ref:"Romans 5:8", topics:["love","grace","sacrifice"]},
+    {ref:"Psalm 139:23-24", topics:["self examination","honesty","heart"]}
+  ];
+
+  // In-memory cache so the same verse text isn't re-fetched from the API
+  // repeatedly within a session (cleared on page reload -- deliberately not
+  // persisted, since it's just an optimization, not user data).
+  const verseTextCache = {};
+  async function fetchVerseText(ref, version){
+    const cacheKey = version+"|"+ref;
+    if(verseTextCache[cacheKey]) return verseTextCache[cacheKey];
+    const url = "https://bible-api.com/"+encodeURIComponent(ref)+"?translation="+version;
+    const response = await fetchWithTimeout(url, {}, 8000);
+    if(!response.ok) throw new Error("api-"+response.status);
+    const data = await response.json();
+    if(data.error) throw new Error("api-error");
+    const text = (data.text||"").replace(/\s+/g," ").trim();
+    verseTextCache[cacheKey] = text;
+    return text;
+  }
 
   const STORAGE_HL = "bible_highlights_v2";
   const STORAGE_BM = "bible_bookmarks_v2";
@@ -281,9 +377,164 @@
 
   const panes = { a:{bookIdx:0, chapter:1, version:"web", requestId:0}, b:{bookIdx:0, chapter:1, version:"kjv", requestId:0} };
   let compareMode=false, cache={}, selectedVerse=null, currentTab="chapter", chatHistory=[];
+  let verseSummaryReq=0, chapterSummaryReq=0;
+
+  // --- Real AI: two independent free, keyless, browser-callable text APIs ----
+  // Both were verified to work directly from a browser via fetch(), no API key,
+  // no signup, no CORS proxy needed:
+  //   1. LLM7.io      (https://api.llm7.io/v1)        -- PRIMARY
+  //   2. Pollinations  (https://text.pollinations.ai)  -- FALLBACK
+  // If the primary provider fails after its own retries, we automatically fall
+  // through to the fallback provider before giving up. This is still free,
+  // best-effort infrastructure -- no keyless AI API anywhere guarantees 100%
+  // uptime -- but two independent providers fail at the same moment far less
+  // often than either one alone, so this meaningfully improves reliability.
+  function sleep(ms){ return new Promise(res=> setTimeout(res, ms)); }
+
+  async function fetchWithTimeout(url, options, timeoutMs){
+    const controller = new AbortController();
+    const timer = setTimeout(()=> controller.abort(), timeoutMs);
+    try {
+      return await fetch(url, { ...options, signal: controller.signal });
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  // Classifies a failure so the UI can show something more useful than "it broke".
+  function describeAiError(err){
+    const msg = (err && err.message) || "";
+    if(err && err.name==="AbortError") return "timed-out";
+    if(msg.indexOf("api-429")===0) return "rate-limited";
+    if(msg.indexOf("api-5")===0) return "server-error";
+    if(msg.indexOf("api-")===0) return "api-error";
+    if(msg==="empty-response" || msg==="malformed-response") return "bad-response";
+    if(err instanceof TypeError) return "network"; // fetch throws TypeError on network/CORS failure
+    return "unknown";
+  }
+  const AI_ERROR_MESSAGES = {
+    "timed-out": "The free AI service took too long to respond and timed out.",
+    "rate-limited": "The free AI service is briefly rate-limited (too many requests right now).",
+    "server-error": "The free AI service is temporarily having server issues.",
+    "api-error": "The free AI service returned an unexpected error.",
+    "bad-response": "The free AI service sent back a response we couldn't read.",
+    "network": "Couldn't reach the free AI service -- check your internet connection.",
+    "unknown": "The free AI service couldn't finish that request."
+  };
+  function aiErrorMessage(err){
+    const kind = describeAiError(err);
+    return AI_ERROR_MESSAGES[kind] + " Both free providers were tried and retried automatically -- this happens occasionally with free public APIs. You can try again below.";
+  }
+
+  // Each provider is a plain (system, userMessage, maxTokens) -> text function,
+  // so adding a third free provider later just means adding one more entry to
+  // AI_PROVIDERS below -- no other code needs to change.
+  async function callLLM7(system, userMessage, maxTokens){
+    const response = await fetchWithTimeout("https://api.llm7.io/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "default",
+        messages: [{ role:"system", content:system }, { role:"user", content:userMessage }],
+        temperature: 0.6,
+        max_tokens: maxTokens || 400
+      })
+    }, 20000);
+    if(!response.ok) throw new Error("api-"+response.status);
+    let data;
+    try { data = await response.json(); } catch(e) { throw new Error("malformed-response"); }
+    const content = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+    if(!content) throw new Error("empty-response");
+    return content;
+  }
+
+  async function callPollinations(system, userMessage, maxTokens){
+    const response = await fetchWithTimeout("https://text.pollinations.ai/openai", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        model: "openai",
+        messages: [{ role:"system", content:system }, { role:"user", content:userMessage }],
+        temperature: 0.6,
+        max_tokens: maxTokens || 400
+      })
+    }, 20000);
+    if(!response.ok) throw new Error("api-"+response.status);
+    let data;
+    try { data = await response.json(); } catch(e) { throw new Error("malformed-response"); }
+    const content = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
+    if(!content) throw new Error("empty-response");
+    return content;
+  }
+
+  // Order matters: first entry is the primary provider, tried (with its own
+  // retries) before falling through to the next.
+  const AI_PROVIDERS = [
+    { name: "LLM7", call: callLLM7 },
+    { name: "Pollinations", call: callPollinations }
+  ];
+
+  // Retries a single provider's transient failures (timeouts, network blips,
+  // rate limits, 5xx) with increasing backoff, so a brief hiccup doesn't
+  // immediately trigger a fallback to the next provider.
+  async function callProviderWithRetry(providerCall, system, userMessage, maxTokens, attempts){
+    attempts = attempts || 2;
+    let lastErr;
+    for(let i=0; i<attempts; i++){
+      try {
+        return await providerCall(system, userMessage, maxTokens);
+      } catch(err){
+        lastErr = err;
+        const isLastAttempt = i===attempts-1;
+        if(isLastAttempt) break;
+        const kind = describeAiError(err);
+        // Back off longer for rate limits/server errors, shorter for one-off blips.
+        const base = (kind==="rate-limited" || kind==="server-error") ? 1500 : 700;
+        const delay = base * Math.pow(2, i) + Math.random()*300;
+        await sleep(delay);
+      }
+    }
+    throw lastErr;
+  }
+
+  // Tries each provider in order (each with its own retries) and returns the
+  // first successful result. Only throws if every provider failed.
+  async function generateWithAI(system, userMessage, maxTokens){
+    let lastErr;
+    for(let p=0; p<AI_PROVIDERS.length; p++){
+      const provider = AI_PROVIDERS[p];
+      try {
+        return await callProviderWithRetry(provider.call, system, userMessage, maxTokens, 2);
+      } catch(err){
+        console.warn(provider.name+" failed, "+(p<AI_PROVIDERS.length-1 ? "falling back..." : "no providers left."), err);
+        lastErr = err;
+      }
+    }
+    throw lastErr;
+  }
+  // Parses a "LABEL: text" block out of the model's reply — more forgiving
+  // than requiring strict JSON, and works well across different free models.
+  function parseLabeledSections(raw, keys){
+    const result={}; const text=(raw||"").trim();
+    for(let i=0;i<keys.length;i++){
+      const key=keys[i]; const nextKey=keys[i+1];
+      const startRe=new RegExp(key+"\\s*:\\s*","i"); const m=text.match(startRe);
+      if(!m){ result[key]=""; continue; }
+      const startIdx=m.index+m[0].length; let endIdx=text.length;
+      if(nextKey){ const rest=text.slice(startIdx); const endM=rest.match(new RegExp(nextKey+"\\s*:","i")); if(endM) endIdx=startIdx+endM.index; }
+      result[key]=text.slice(startIdx,endIdx).trim();
+    }
+    const anyFound=keys.some(k=> result[k]);
+    if(!anyFound) result._fallback=text;
+    return result;
+  }
+  function skeletonHtml(lines){
+    return `<div class="skeleton">${lines.map(w=>`<div class="skel-line" style="width:${w}%"></div>`).join("")}</div>`;
+  }
 
   const headerTitle=document.getElementById("headerTitle");
   const versionSelect=document.getElementById("versionSelect");
+  const versionSelectB=document.getElementById("versionSelectB");
   const drawer=document.getElementById("drawer");
   const overlay=document.getElementById("overlay");
   const openNavBtn=document.getElementById("openNavBtn");
@@ -314,9 +565,78 @@
   compareBtn.addEventListener("click", ()=>{
     compareMode=!compareMode; document.body.classList.toggle("compare-mode", compareMode); compareBtn.classList.toggle("active", compareMode);
     document.querySelector('.pane[data-pane="b"]').style.display = compareMode ? "flex" : "none";
-    if(compareMode) loadPane("b"); else headerTitle.textContent = BOOKS[panes.a.bookIdx][1]+" "+panes.a.chapter;
+    if(compareMode){
+      // First time entering compare mode, default pane B to wherever pane A is reading.
+      if(!panes.b._touched){ panes.b.bookIdx=panes.a.bookIdx; panes.b.chapter=panes.a.chapter; }
+      loadPane("b");
+    } else {
+      headerTitle.textContent = BOOKS[panes.a.bookIdx][1]+" "+panes.a.chapter;
+    }
   });
-  versionSelect.addEventListener("change", ()=>{ panes.a.version=versionSelect.value; loadPane("a"); });
+  function populateVersionSelects(){
+    const optsHtml = VERSIONS.map(([id,label])=> `<option value="${id}">${label}</option>`).join("");
+    versionSelect.innerHTML = optsHtml;
+    versionSelect.value = panes.a.version;
+    versionSelectB.innerHTML = optsHtml;
+    versionSelectB.value = panes.b.version;
+  }
+  populateVersionSelects();
+  versionSelect.addEventListener("change", ()=>{ panes.a.version=versionSelect.value; const lbl=paneEl(".pane-version-label","a"); if(lbl) lbl.textContent=versionName(versionSelect.value); loadPane("a"); });
+  versionSelectB.addEventListener("change", ()=>{ panes.b.version=versionSelectB.value; loadPane("b"); });
+
+  // --- Per-pane reference picker (book + chapter), used mainly so pane B can
+  // navigate independently in compare mode -- but wired up for pane A too. ---
+  const refPickers = { a: document.querySelector('.ref-picker[data-pane="a"]'), b: document.querySelector('.ref-picker[data-pane="b"]') };
+  const refBtns = { a: document.querySelector('.pane-ref-btn[data-pane="a"]'), b: document.querySelector('.pane-ref-btn[data-pane="b"]') };
+
+  function closeAllRefPickers(){ refPickers.a.classList.remove("open"); refPickers.b.classList.remove("open"); }
+
+  function renderRefPickerBooks(k, filter=""){
+    const picker=refPickers[k]; const booksEl=picker.querySelector(".rp-books"); booksEl.innerHTML="";
+    const p=panes[k];
+    BOOKS.forEach((b,idx)=>{
+      if(filter && !b[1].toLowerCase().includes(filter.toLowerCase()) && !b[0].toLowerCase().includes(filter.toLowerCase())) return;
+      const btn=document.createElement("button"); btn.className="rp-book-btn"+(idx===p.bookIdx?" active":""); btn.textContent=b[1];
+      btn.addEventListener("click", ()=>{
+        p.bookIdx=idx; p.chapter=1; p._touched=true;
+        renderRefPickerBooks(k, picker.querySelector(".rp-search-input").value);
+        renderRefPickerChapters(k);
+        loadPane(k);
+        if(k==="a"){ renderBookList(bookSearch.value); renderChapterGrid(); updateBookmarkUI(); }
+      });
+      booksEl.appendChild(btn);
+    });
+  }
+  function renderRefPickerChapters(k){
+    const picker=refPickers[k]; const grid=picker.querySelector(".rp-chapter-grid"); grid.innerHTML="";
+    const p=panes[k]; const book=BOOKS[p.bookIdx];
+    for(let i=1;i<=book[2];i++){
+      const btn=document.createElement("button"); btn.className="rp-ch-btn"+(i===p.chapter?" active":""); btn.textContent=i;
+      btn.addEventListener("click", ()=>{
+        p.chapter=i; p._touched=true;
+        renderRefPickerChapters(k);
+        loadPane(k);
+        if(k==="a"){ renderChapterGrid(); updateBookmarkUI(); }
+        closeAllRefPickers();
+      });
+      grid.appendChild(btn);
+    }
+  }
+  function openRefPicker(k){
+    const wasOpen=refPickers[k].classList.contains("open");
+    closeAllRefPickers();
+    if(wasOpen) return;
+    refPickers[k].querySelector(".rp-search-input").value="";
+    renderRefPickerBooks(k); renderRefPickerChapters(k);
+    refPickers[k].classList.add("open");
+  }
+  refBtns.a.addEventListener("click", (e)=>{ e.stopPropagation(); openRefPicker("a"); });
+  refBtns.b.addEventListener("click", (e)=>{ e.stopPropagation(); openRefPicker("b"); });
+  refPickers.a.querySelector(".rp-search-input").addEventListener("input", e=> renderRefPickerBooks("a", e.target.value));
+  refPickers.b.querySelector(".rp-search-input").addEventListener("input", e=> renderRefPickerBooks("b", e.target.value));
+  refPickers.a.addEventListener("click", e=> e.stopPropagation());
+  refPickers.b.addEventListener("click", e=> e.stopPropagation());
+  document.addEventListener("click", closeAllRefPickers);
   bookmarkBtn.addEventListener("click", ()=>{
     const p=panes.a; const bms=toggleBookmark(p.bookIdx, p.chapter);
     updateBookmarkUI(); renderBookmarkList(); renderChapterGrid(); renderBookList(bookSearch.value);
@@ -338,7 +658,7 @@
     bms.slice(0,20).forEach(bm=>{
       const div=document.createElement("div"); div.className="bm-item";
       div.innerHTML=`<span>${bm.bookName} ${bm.chapter}</span><button>Remove</button>`;
-      div.addEventListener("click", (e)=>{ if(e.target.tagName==="BUTTON") return; panes.a.bookIdx=bm.bookIdx; panes.a.chapter=bm.chapter; if(compareMode){ panes.b.bookIdx=bm.bookIdx; panes.b.chapter=bm.chapter; loadPane("b"); } renderBookList(""); renderChapterGrid(); loadPane("a"); closeDrawer(); });
+      div.addEventListener("click", (e)=>{ if(e.target.tagName==="BUTTON") return; panes.a.bookIdx=bm.bookIdx; panes.a.chapter=bm.chapter; if(compareMode && !panes.b._touched){ panes.b.bookIdx=bm.bookIdx; panes.b.chapter=bm.chapter; loadPane("b"); } renderBookList(""); renderChapterGrid(); loadPane("a"); closeDrawer(); });
       div.querySelector("button").addEventListener("click", (e)=>{ e.stopPropagation(); toggleBookmark(bm.bookIdx, bm.chapter); renderBookmarkList(); renderChapterGrid(); renderBookList(""); updateBookmarkUI(); if(currentTab==="marks") renderMarks(); });
       bookmarkList.appendChild(div);
     });
@@ -354,7 +674,7 @@
         const isBMarked = getBookmarks().some(bm=> bm.bookIdx===idx);
         const btn=document.createElement("button"); btn.className="book-btn"+(isBMarked?" bookmarked":"")+(idx===panes.a.bookIdx?" active":"");
         btn.innerHTML=`<span>${b[1]}</span><span class="mark-dot"></span>`;
-        btn.addEventListener("click", ()=>{ panes.a.bookIdx=idx; panes.a.chapter=1; if(compareMode){ panes.b.bookIdx=idx; panes.b.chapter=1; loadPane("b"); } renderBookList(bookSearch.value); renderChapterGrid(); loadPane("a"); closeDrawer(); updateBookmarkUI(); });
+        btn.addEventListener("click", ()=>{ panes.a.bookIdx=idx; panes.a.chapter=1; if(compareMode && !panes.b._touched){ panes.b.bookIdx=idx; panes.b.chapter=1; loadPane("b"); } renderBookList(bookSearch.value); renderChapterGrid(); loadPane("a"); closeDrawer(); updateBookmarkUI(); });
         bookList.appendChild(btn);
       });
     });
@@ -365,12 +685,12 @@
     for(let i=1;i<=book[2];i++){
       const bm = isBookmarked(panes.a.bookIdx,i);
       const btn=document.createElement("button"); btn.className="ch-btn"+(i===panes.a.chapter?" active":"")+(bm?" bookmarked":""); btn.textContent=i;
-      btn.addEventListener("click", ()=>{ panes.a.chapter=i; if(compareMode){ panes.b.chapter=i; loadPane("b"); } renderChapterGrid(); loadPane("a"); closeDrawer(); updateBookmarkUI(); });
+      btn.addEventListener("click", ()=>{ panes.a.chapter=i; if(compareMode && !panes.b._touched){ panes.b.chapter=i; loadPane("b"); } renderChapterGrid(); loadPane("a"); closeDrawer(); updateBookmarkUI(); });
       chapterGrid.appendChild(btn);
     }
   }
-  function goPrev(k){ const p=panes[k]; if(p.chapter>1) p.chapter--; else if(p.bookIdx>0){ p.bookIdx--; p.chapter=BOOKS[p.bookIdx][2]; } else return; if(k==="a"){ renderBookList(bookSearch.value); renderChapterGrid(); updateBookmarkUI(); } loadPane(k); }
-  function goNext(k){ const p=panes[k]; const b=BOOKS[p.bookIdx]; if(p.chapter<b[2]) p.chapter++; else if(p.bookIdx<BOOKS.length-1){ p.bookIdx++; p.chapter=1; } else return; if(k==="a"){ renderBookList(bookSearch.value); renderChapterGrid(); updateBookmarkUI(); } loadPane(k); }
+  function goPrev(k){ const p=panes[k]; if(p.chapter>1) p.chapter--; else if(p.bookIdx>0){ p.bookIdx--; p.chapter=BOOKS[p.bookIdx][2]; } else return; if(k==="a"){ renderBookList(bookSearch.value); renderChapterGrid(); updateBookmarkUI(); } else { p._touched=true; } loadPane(k); }
+  function goNext(k){ const p=panes[k]; const b=BOOKS[p.bookIdx]; if(p.chapter<b[2]) p.chapter++; else if(p.bookIdx<BOOKS.length-1){ p.bookIdx++; p.chapter=1; } else return; if(k==="a"){ renderBookList(bookSearch.value); renderChapterGrid(); updateBookmarkUI(); } else { p._touched=true; } loadPane(k); }
   document.querySelectorAll(".prev-btn").forEach(btn=> btn.addEventListener("click", ()=> goPrev(btn.dataset.pane)));
   document.querySelectorAll(".next-btn").forEach(btn=> btn.addEventListener("click", ()=> goNext(btn.dataset.pane)));
 
@@ -391,7 +711,9 @@
   function updateHeader(k){
     const book=BOOKS[panes[k].bookIdx]; const label=book[1]+" "+panes[k].chapter;
     if(k==="a" && !compareMode) headerTitle.textContent=label;
-    if(compareMode){ paneEl(".pane-ref-btn", k).textContent=label; headerTitle.textContent="Comparing"; }
+    if(compareMode) headerTitle.textContent="Comparing";
+    paneEl(".pane-ref-btn", k).textContent=label;
+    if(k==="a"){ const lbl=paneEl(".pane-version-label", k); if(lbl) lbl.textContent=versionName(panes.a.version); }
   }
   function updatePager(k){
     const p=panes[k]; const b=BOOKS[p.bookIdx];
@@ -447,33 +769,57 @@
     else if(currentTab==="marks") renderMarks();
   }
 
-  function renderChapterSummary(){
+  async function renderChapterSummary(){
     const p=panes.a; const book=BOOKS[p.bookIdx]; const key=p.version+"/"+book[0]+"/"+p.chapter; const verses=cache[key];
     if(!verses || !verses.length){ aiContent.innerHTML='<div class="ai-empty"><p>Load a chapter to see summary</p></div>'; return; }
-    const allText = verses.map(v=>v.text).join(" ").toLowerCase();
-    const words = allText.match(/\b\w{4,}\b/g) || []; const freq={}; words.forEach(w=> freq[w]=(freq[w]||0)+1);
-    const scored = verses.map(v=>{
-      const ws=v.text.toLowerCase().match(/\b\w{4,}\b/g)||[]; let s=ws.reduce((a,w)=> a+(freq[w]||0),0)/(ws.length||1);
-      if(v.verse===1) s+=4; return {...v, score:s};
-    }).sort((a,b)=> b.score-a.score).slice(0,5).sort((a,b)=> a.verse-b.verse);
-    const overview = `${book[1]} ${book[4].toLowerCase()}. ${book[1]} ${p.chapter} contains ${verses.length} verses. The central theme is ${extractTheme(verses).toLowerCase()}.`;
-    const structure = `Verses 1-${Math.ceil(verses.length/3)} introduce, ${Math.ceil(verses.length/3)+1}-${Math.ceil(verses.length*2/3)} develop, ${Math.ceil(verses.length*2/3)+1}-${verses.length} conclude.`;
-    aiContent.innerHTML=`<div class="ai-card"><h3>Chapter Summary</h3><p>${overview}</p></div><div class="ai-card gold"><h3>Key Points</h3>${scored.map((v,i)=> `<div class="bullet"><div class="num">${i+1}</div><p><strong>Verse ${v.verse}:</strong> ${v.text.slice(0,180)}</p></div>`).join("")}</div><div class="ai-card"><h3>Structure</h3><p>${structure}</p></div>`;
+    const reqToken=++chapterSummaryReq;
+    aiContent.innerHTML=`
+      <div class="ai-card" id="chSummaryCard"><h3>Chapter Summary</h3>${skeletonHtml([95,88,60])}</div>
+      <div class="ai-card gold" id="chKeyPointsCard"><h3>Key Points</h3>${skeletonHtml([90,80,85,70])}</div>
+      <div class="ai-card" id="chStructureCard"><h3>Structure</h3>${skeletonHtml([92,55])}</div>
+    `;
+    try {
+      const summary = await generateChapterSummary(book, p.chapter, verses);
+      if(reqToken!==chapterSummaryReq) return;
+      const sc=document.getElementById("chSummaryCard"); if(sc) sc.innerHTML=`<h3>Chapter Summary</h3><p>${summary.overview}</p>`;
+      const kp=document.getElementById("chKeyPointsCard");
+      if(kp) kp.innerHTML=`<h3>Key Points</h3>${summary.keyPoints.map((k,i)=> `<div class="bullet"><div class="num">${i+1}</div><p>${k}</p></div>`).join("")}`;
+      const st=document.getElementById("chStructureCard"); if(st) st.innerHTML=`<h3>Structure</h3><p>${summary.structure}</p>`;
+    } catch(err){
+      if(reqToken!==chapterSummaryReq) return;
+      console.error(err);
+      const msg=`<p style="color:var(--ink-faint);font-size:13px">${aiErrorMessage(err)}</p><button class="ai-action-btn" id="retryChapterSummary" style="margin-top:8px">Try Again</button>`;
+      ["chSummaryCard","chKeyPointsCard","chStructureCard"].forEach((id,i)=>{
+        const el=document.getElementById(id); const titles=["Chapter Summary","Key Points","Structure"];
+        if(el) el.innerHTML=`<h3>${titles[i]}</h3>${msg}`;
+      });
+      const retryBtns=document.querySelectorAll("#retryChapterSummary");
+      retryBtns.forEach(b=> b.addEventListener("click", ()=> renderChapterSummary()));
+    }
   }
-  function extractTheme(verses){
-    const text = verses.map(v=>v.text).join(" ").toLowerCase();
-    if(text.includes("love")) return "God's faithful love as foundation for obedience";
-    if(text.includes("faith") || text.includes("believe")) return "Trust in God over human strength";
-    if(text.includes("sin") || text.includes("forgive")) return "Sin and provision of atonement";
-    return "God initiates and calls for faithful response";
+  async function generateChapterSummary(book, chapter, verses){
+    const system=`You are a careful, denominationally neutral Bible study assistant. You will be given the text of a Bible chapter. Reply in EXACTLY this plain-text format, nothing else, no markdown:
+OVERVIEW: (2-3 sentences summarizing the chapter's content and central theme)
+KEY POINTS:
+- (one sentence on a notable verse or moment)
+- (one sentence on a notable verse or moment)
+- (one sentence on a notable verse or moment)
+STRUCTURE: (1-2 sentences on how the chapter is organized)`;
+    const versesText = verses.slice(0,60).map(v=> `${v.verse}. ${v.text}`).join("\n").slice(0,3000);
+    const user=`${book[1]} chapter ${chapter}:\n${versesText}`;
+    const raw = await generateWithAI(system, user, 350);
+    const parsed = parseLabeledSections(raw, ["OVERVIEW","KEY POINTS","STRUCTURE"]);
+    if(parsed._fallback) return { overview: parsed._fallback, keyPoints: [], structure: "" };
+    const keyPoints = (parsed["KEY POINTS"]||"").split(/\n/).map(l=> l.replace(/^[-•*]\s*/,"").trim()).filter(Boolean).slice(0,6);
+    return { overview: parsed["OVERVIEW"] || "(no overview generated)", keyPoints, structure: parsed["STRUCTURE"] || "" };
   }
-  function renderVerseSummary(){
+  async function renderVerseSummary(){
     if(!selectedVerse){
       aiContent.innerHTML=`<div class="ai-empty"><p>Select a verse by tapping it to see summary and highlighting.</p></div>`;
       return;
     }
     const v=selectedVerse;
-    const meaning = generateVerseMeaning(v);
+    const reqToken=++verseSummaryReq;
     aiContent.innerHTML=`
       <div class="ai-card gold"><div class="verse-ref">${v.bookName} ${v.chapter}:${v.verseNum}</div><div class="verse-text">"${v.text}"</div>
         <div class="hl-controls">
@@ -484,9 +830,9 @@
           <button class="hl-btn clear" data-color="clear">Clear</button>
         </div>
       </div>
-      <div class="ai-card"><h3>Verse Summary</h3><p>${meaning.meaning}</p></div>
-      <div class="ai-card"><h3>In Context</h3><p>${meaning.context}</p></div>
-      <div class="ai-card"><h3>Application</h3><p>${meaning.application}</p></div>
+      <div class="ai-card" id="vsSummaryCard"><h3>Verse Summary</h3>${skeletonHtml([90,65])}</div>
+      <div class="ai-card" id="vsContextCard"><h3>In Context</h3>${skeletonHtml([85,50])}</div>
+      <div class="ai-card" id="vsApplicationCard"><h3>Application</h3>${skeletonHtml([80])}</div>
     `;
     aiContent.querySelectorAll(".hl-btn").forEach(btn=>{
       btn.addEventListener("click", ()=>{
@@ -500,13 +846,33 @@
         if(currentTab==="marks") renderMarks();
       });
     });
+    try {
+      const meaning = await generateVerseMeaning(v);
+      if(reqToken!==verseSummaryReq) return;
+      const sc=document.getElementById("vsSummaryCard"); if(sc) sc.innerHTML=`<h3>Verse Summary</h3><p>${meaning.meaning}</p>`;
+      const cc=document.getElementById("vsContextCard"); if(cc) cc.innerHTML=`<h3>In Context</h3><p>${meaning.context}</p>`;
+      const ac=document.getElementById("vsApplicationCard"); if(ac) ac.innerHTML=`<h3>Application</h3><p>${meaning.application}</p>`;
+    } catch(err){
+      if(reqToken!==verseSummaryReq) return;
+      console.error(err);
+      const msg=`<p style="color:var(--ink-faint);font-size:13px">${aiErrorMessage(err)}</p><button class="ai-action-btn" id="retryVerseSummary" style="margin-top:8px">Try Again</button>`;
+      const sc=document.getElementById("vsSummaryCard"); if(sc) sc.innerHTML=`<h3>Verse Summary</h3>${msg}`;
+      const cc=document.getElementById("vsContextCard"); if(cc) cc.innerHTML=`<h3>In Context</h3>${msg}`;
+      const ac=document.getElementById("vsApplicationCard"); if(ac) ac.innerHTML=`<h3>Application</h3>${msg}`;
+      const retryBtns=document.querySelectorAll("#retryVerseSummary");
+      retryBtns.forEach(b=> b.addEventListener("click", ()=> renderVerseSummary()));
+    }
   }
-  function generateVerseMeaning(v){
-    const low=v.text.toLowerCase();
-    let meaning=`This verse centers on ${low.includes("lord")||low.includes("god")?"God's initiative":"human response"}. ${low.includes("love")?"Love is covenant loyalty, not fleeting emotion.":""} ${low.includes("faith")||low.includes("believe")?"Faith is active trust that obeys.":""}`;
-    const context=`In ${v.bookName} ${v.chapter}, verse ${v.verseNum} functions as ${v.verseNum<=3?"opening frame":"pivotal link"}. Surrounding verses ${Math.max(1,v.verseNum-2)}-${v.verseNum+2} give immediate context.`;
-    const application=`If ${v.bookName} ${v.chapter}:${v.verseNum} is true, what one practical step does it call for today?`;
-    return {meaning, context, application};
+  async function generateVerseMeaning(v){
+    const system=`You are a careful, denominationally neutral Bible study assistant. You will be given a single Bible verse. Reply in EXACTLY this plain-text format, nothing else, no markdown:
+MEANING: (1-2 sentences on what the verse means)
+CONTEXT: (1-2 sentences on how it fits within its surrounding passage)
+APPLICATION: (one practical reflection question or takeaway for the reader)`;
+    const user=`Verse: ${v.bookName} ${v.chapter}:${v.verseNum}\nText: "${v.text}"`;
+    const raw = await generateWithAI(system, user, 280);
+    const parsed = parseLabeledSections(raw, ["MEANING","CONTEXT","APPLICATION"]);
+    if(parsed._fallback) return { meaning: parsed._fallback, context: "", application: "" };
+    return { meaning: parsed.MEANING || "(no summary generated)", context: parsed.CONTEXT || "", application: parsed.APPLICATION || "" };
   }
 
   function renderChat(){
@@ -525,23 +891,58 @@
     div.innerHTML=html; log.appendChild(div); aiContent.scrollTop=aiContent.scrollHeight;
     const empty=document.getElementById("chatEmpty"); if(empty) empty.style.display="none";
     if(save){ chatHistory.push({role, text, sources}); if(chatHistory.length>30) chatHistory.shift(); }
+    return div;
   }
-  aiChatForm.addEventListener("submit", e=>{
-    e.preventDefault(); const q=aiChatInput.value.trim(); if(!q) return; addMsg("user", q, null); aiChatInput.value="";
-    setTimeout(()=>{ const ans=answerWithScripture(q); addMsg("ai", ans.text, ans.sources); }, 300);
+  aiChatForm.addEventListener("submit", async e=>{
+    e.preventDefault(); const q=aiChatInput.value.trim(); if(!q) return;
+    addMsg("user", q, null); aiChatInput.value="";
+    const sendBtn=document.getElementById("aiChatSend");
+    aiChatInput.disabled=true; if(sendBtn) sendBtn.disabled=true;
+    const thinkingDiv=addMsg("ai", `<span class="thinking-dots">Thinking<i></i><i></i><i></i></span>`, null, false);
+    try {
+      const ans=await answerWithScripture(q);
+      thinkingDiv.remove();
+      addMsg("ai", ans.text, ans.sources);
+    } catch(err){
+      thinkingDiv.remove();
+      console.error(err);
+      addMsg("ai", aiErrorMessage(err), null, false);
+    } finally {
+      aiChatInput.disabled=false; if(sendBtn) sendBtn.disabled=false; aiChatInput.focus();
+    }
   });
-  function answerWithScripture(question){
-    const qLow=question.toLowerCase(); const qWords=qLow.match(/\b\w{3,}\b/g)||[];
+  async function answerWithScripture(question){
     const p=panes.a; const book=BOOKS[p.bookIdx]; const key=p.version+"/"+book[0]+"/"+p.chapter; const currentVerses=cache[key]||[];
-    const kbScored = SCRIPTURE_KB.map(e=>{ let score=0; e.topics.forEach(t=>{ if(qLow.includes(t)) score+=3; }); qWords.forEach(w=>{ if(e.text.toLowerCase().includes(w)) score+=1; }); return {...e, score}; }).filter(e=>e.score>0).sort((a,b)=>b.score-a.score).slice(0,3);
-    const curScored = currentVerses.map(v=>{ let score=0; qWords.forEach(w=>{ if(v.text.toLowerCase().includes(w)) score+=1; }); return {...v, score, ref:`${book[1]} ${p.chapter}:${v.verse}`}; }).filter(v=>v.score>0).sort((a,b)=>b.score-a.score).slice(0,2);
-    let sources=[...kbScored, ...curScored.map(v=>({ref:v.ref, text:v.text}))].slice(0,4);
-    if(!sources.length) sources=currentVerses.slice(0,2).map(v=>({ref:`${book[1]} ${p.chapter}:${v.verse}`, text:v.text}));
-    let text="";
-    if(kbScored.length){ const main=kbScored[0]; text=`Based on scripture, ${main.ref} teaches: "${main.text.slice(0,140)}". This directly addresses your question about "${question.slice(0,50)}".`; }
-    else if(curScored.length){ text=`In ${book[1]} ${p.chapter}, verse ${curScored[0].ref.split(":")[1]} speaks to this: "${curScored[0].text.slice(0,150)}".`; }
-    else { text=`Consider ${book[1]} ${p.chapter} which speaks to ${extractTheme(currentVerses).toLowerCase()}.`; }
-    return {text, sources};
+    const currentText = currentVerses.map(v=> `${book[1]} ${p.chapter}:${v.verse} — ${v.text}`).join("\n").slice(0,2000);
+    const system=`You are a warm, denominationally neutral Bible study assistant embedded in a Bible-reading app. Answer the user's question in 2-4 plain-spoken sentences. You may reference the chapter the user is currently reading if it's relevant. Reply with the answer only, no preamble, no markdown.`;
+    const user=`Currently reading — ${book[1]} ${p.chapter}:\n${currentText || "(not loaded yet)"}\n\nQuestion: ${question}`;
+    const text = await generateWithAI(system, user, 260);
+    const sources = await findRelatedVerses(question, currentVerses, book, p.chapter, p.version);
+    return {text: text.trim(), sources};
+  }
+  // Finds candidate cross-references by keyword match against the topic index
+  // and the currently-open chapter, then fetches the REAL verse text for each
+  // live from bible-api.com, in the reader's current translation. This is
+  // deliberately kept separate from the AI's generated answer: better not to
+  // trust a free hosted model to quote verses from memory verbatim, when the
+  // real text is one fetch away and guaranteed accurate.
+  async function findRelatedVerses(question, currentVerses, book, chapter, version){
+    const qLow=question.toLowerCase(); const qWords=qLow.match(/\b\w{3,}\b/g)||[];
+    const topicScored = SCRIPTURE_TOPIC_INDEX.map(e=>{ let score=0; e.topics.forEach(t=>{ if(qLow.includes(t)) score+=3; }); return {...e, score}; }).filter(e=>e.score>0).sort((a,b)=>b.score-a.score).slice(0,2);
+    const curScored = currentVerses.map(v=>{ let score=0; qWords.forEach(w=>{ if(v.text.toLowerCase().includes(w)) score+=1; }); return {ref:`${book[1]} ${chapter}:${v.verse}`, text:v.text, score}; }).filter(v=>v.score>0).sort((a,b)=>b.score-a.score).slice(0,2);
+    // Fetch live text for topic-index matches (currently-open verses already
+    // have their text in-memory from the chapter that's loaded).
+    const topicResults = await Promise.all(topicScored.map(async e=>{
+      try {
+        const text = await fetchVerseText(e.ref, version);
+        return text ? {ref:e.ref, text} : null;
+      } catch(err){
+        console.warn("Couldn't fetch live text for "+e.ref, err);
+        return null; // Skip silently rather than showing a broken citation.
+      }
+    }));
+    const validTopicResults = topicResults.filter(Boolean);
+    return [...validTopicResults, ...curScored.map(v=>({ref:v.ref, text:v.text}))].slice(0,3);
   }
 
   function renderMarks(){
@@ -561,7 +962,7 @@
     aiContent.querySelectorAll(".mark-item[data-type='bm']").forEach(el=>{
       el.addEventListener("click", (e)=>{
         if(e.target.classList.contains("remove-bm")){ const bookIdx=parseInt(el.dataset.book); const ch=parseInt(el.dataset.ch); toggleBookmark(bookIdx,ch); renderBookmarkList(); renderChapterGrid(); renderBookList(""); updateBookmarkUI(); renderMarks(); return; }
-        const bookIdx=parseInt(el.dataset.book); const ch=parseInt(el.dataset.ch); panes.a.bookIdx=bookIdx; panes.a.chapter=ch; if(compareMode){ panes.b.bookIdx=bookIdx; panes.b.chapter=ch; loadPane("b"); } renderBookList(""); renderChapterGrid(); loadPane("a"); updateBookmarkUI();
+        const bookIdx=parseInt(el.dataset.book); const ch=parseInt(el.dataset.ch); panes.a.bookIdx=bookIdx; panes.a.chapter=ch; if(compareMode && !panes.b._touched){ panes.b.bookIdx=bookIdx; panes.b.chapter=ch; loadPane("b"); } renderBookList(""); renderChapterGrid(); loadPane("a"); updateBookmarkUI();
       });
     });
     aiContent.querySelectorAll(".mark-item[data-type='hl']").forEach(el=>{
