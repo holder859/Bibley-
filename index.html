@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>The Books — Bible Reader</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,500;9..144,600&family=Source+Serif+4:opsz,wght@8..60,400;8..60,600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #141b2e;
+    --bg-header: #0f1524;
+    --bg-panel: #111a2f;
+    --ink: #e8e1d0;
+    --ink-dim: #e8e1d0a6;
+    --ink-faint: #e8e1d066;
+    --gold: #c9a867;
+    --gold-soft: #e8d9a8;
+    --border: #c9a86733;
+    --panel-border: #2a3658;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; height:100%; background:var(--bg); color:var(--ink); font-family:'Source Serif 4', Georgia, serif; overflow:hidden; }
+  .font-display { font-family:'Fraunces', Georgia, serif; }
+  #app { height:100vh; display:flex; flex-direction:column; }
+
+  header { display:flex; align-items:center; justify-content:space-between; padding:10px 16px; border-bottom:1px solid var(--border); background:var(--bg-header); flex-shrink:0; gap:8px; }
+  @media(min-width:640px){ header{ padding:12px 20px; } }
+  #openNavBtn, #openAiBtn, #compareBtn, #bookmarkBtn {
+    display:flex; align-items:center; gap:6px; background:none; border:1px solid var(--border); color:var(--gold);
+    padding:6px 11px; border-radius:8px; font-family:'Fraunces'; font-size:13px; cursor:pointer; transition:.2s;
+  }
+  #openNavBtn:hover, #compareBtn:hover, #openAiBtn:hover, #bookmarkBtn:hover { border-color:#c9a86777; color:var(--gold-soft); }
+  #openAiBtn { background:#1d2744; border-color:#2f3d66; }
+  #openAiBtn.active { background:var(--gold); color:var(--bg); border-color:var(--gold); }
+  #bookmarkBtn.active { background:var(--gold); color:var(--bg); border-color:var(--gold); }
+  #compareBtn.active { background:var(--gold); color:var(--bg); border-color:var(--gold); }
+  #headerTitle { flex:1; text-align:center; font-size:15px; letter-spacing:.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .header-right { display:flex; gap:6px; align-items:center; }
+
+  #versionSelect { background:transparent; color:var(--gold); border:1px solid var(--border); border-radius:8px; padding:6px 10px; font-family:'Source Serif 4'; font-size:13px; }
+
+  #body { flex:1; min-height:0; display:flex; position:relative; overflow:hidden; }
+  #overlay { position:fixed; inset:0; background:rgba(0,0,0,.5); opacity:0; pointer-events:none; transition:.3s; z-index:29; }
+  #overlay.open { opacity:1; pointer-events:auto; }
+
+  #drawer { position:fixed; left:0; top:0; height:100%; width:88vw; max-width:360px; background:var(--bg-header); border-right:1px solid var(--border); display:flex; flex-direction:column; transform:translateX(-100%); transition:transform .3s cubic-bezier(.4,0,.2,1); z-index:30; }
+  #drawer.open { transform:translateX(0); }
+  .drawer-head { display:flex; justify-content:space-between; align-items:center; padding:18px 16px 10px; flex-shrink:0; }
+  .drawer-head .title { font-family:'Fraunces'; color:var(--gold); font-size:18px; line-height:1.1; }
+  .drawer-head .title small { display:block; font-family:'Source Serif 4'; font-size:10px; color:#c9a86799; text-transform:uppercase; letter-spacing:.14em; margin-top:4px; }
+  #closeNavBtn { background:none; border:none; color:var(--ink-dim); cursor:pointer; padding:6px; }
+  .search-wrap { padding:12px 16px 8px; flex-shrink:0; }
+  #bookSearch { width:100%; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:8px 12px; font-size:14px; color:var(--ink); font-family:'Source Serif 4'; }
+  #bookSearch:focus { outline:2px solid var(--gold); }
+
+  #bookmarkList { padding:0 16px 12px; border-bottom:1px solid var(--border); flex-shrink:0; max-height:140px; overflow-y:auto; display:none; }
+  #bookmarkList.has-items { display:block; }
+  #bookmarkList h4 { font-family:'Fraunces'; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--gold); margin:10px 0 6px; }
+  .bm-item, .hl-item-drawer { display:flex; justify-content:space-between; align-items:center; padding:6px 8px; border-radius:6px; background:#1a2440; border:1px solid var(--panel-border); margin-bottom:6px; cursor:pointer; }
+  .bm-item:hover { border-color:var(--gold); }
+  .bm-item span, .hl-item-drawer span { font-size:13px; color:var(--ink); }
+  .bm-item button, .hl-item-drawer button { background:none; border:none; color:var(--ink-faint); cursor:pointer; font-size:12px; }
+
+  #bookList { flex:1; overflow-y:auto; padding:0 16px 16px; }
+  .section-label { font-size:10px; text-transform:uppercase; letter-spacing:.2em; color:#c9a86799; margin:16px 0 6px; font-family:'Fraunces'; }
+  .book-btn { display:flex; width:100%; justify-content:space-between; align-items:center; text-align:left; padding:7px 10px; border-radius:6px; border:none; background:none; color:#e8e1d0cc; font-size:14px; cursor:pointer; font-family:'Source Serif 4'; }
+  .book-btn:hover { background:#c9a86711; color:var(--ink); } .book-btn.active { background:#c9a86722; color:var(--gold); }
+  .book-btn .mark-dot { width:6px; height:6px; border-radius:50%; background:var(--gold); display:none; }
+  .book-btn.bookmarked .mark-dot { display:block; }
+  .chapter-picker { border-top:1px solid var(--border); padding:12px 16px; max-height:150px; overflow-y:auto; flex-shrink:0; }
+  .chapter-grid { display:flex; flex-wrap:wrap; gap:6px; }
+  .ch-btn { width:36px; height:32px; display:grid; place-items:center; border-radius:6px; border:1px solid var(--border); background:var(--bg); color:var(--ink-dim); font-size:13px; cursor:pointer; position:relative; }
+  .ch-btn:hover { border-color:var(--gold); color:var(--ink); } .ch-btn.active { background:var(--gold); color:var(--bg); border-color:var(--gold); }
+  .ch-btn.bookmarked::after { content:""; position:absolute; top:2px; right:2px; width:5px; height:5px; background:var(--gold); border-radius:50%; }
+  .ch-btn.active.bookmarked::after { background:var(--bg); }
+
+  #panes { flex:1; display:flex; min-width:0; min-height:0; }
+  .pane { flex:1; min-width:0; display:flex; flex-direction:column; border-right:1px solid var(--border); background:var(--bg); }
+  .pane:last-child { border-right:none; }
+  .pane-toolbar { display:none; padding:8px 16px; border-bottom:1px solid var(--border); background:var(--bg-header); justify-content:space-between; align-items:center; }
+  body.compare-mode .pane-toolbar { display:flex; }
+  .pane-ref-btn { background:none; border:1px solid var(--border); color:var(--gold); padding:4px 10px; border-radius:6px; font-family:'Fraunces'; font-size:13px; cursor:pointer; }
+  .reader-main { flex:1; overflow-y:auto; padding:24px 20px 80px; }
+  @media(min-width:900px){ .reader-main{ padding:36px 48px 80px; } }
+  .reader-main::-webkit-scrollbar{ width:8px; } .reader-main::-webkit-scrollbar-thumb{ background:#c9a86744; border-radius:4px; }
+  .chapter-heading { margin-bottom:26px; border-bottom:1px solid var(--border); padding-bottom:18px; display:flex; justify-content:space-between; align-items:flex-end; gap:12px; }
+  .chapter-heading .left .eyebrow { font-size:11px; letter-spacing:.18em; text-transform:uppercase; color:#c9a86799; margin-bottom:8px; }
+  .chapter-heading h1 { font-family:'Fraunces'; font-weight:500; font-size:32px; margin:0; }
+  .chapter-heading h1 .chnum { color:var(--gold); }
+  .chapter-heading .right button { background:none; border:1px solid var(--border); color:var(--gold); padding:6px 10px; border-radius:8px; font-family:'Fraunces'; font-size:12px; cursor:pointer; }
+  .chapter-heading .right button.active { background:var(--gold); color:var(--bg); }
+
+  .verses-text { font-size:19px; line-height:1.78; }
+  .verses-text span { cursor:pointer; border-radius:4px; padding:1px 3px; transition:all .15s; position:relative; }
+  .verses-text span:hover { background:#c9a86711; }
+  .verses-text span.selected { background:#c9a86722; box-shadow:inset 0 0 0 1px #c9a86744; }
+  .verses-text sup { font-family:'Fraunces'; font-size:11px; color:var(--gold); margin-right:4px; font-weight:600; vertical-align:super; user-select:none; }
+
+  /* Highlight colors */
+  .verses-text span.hl-yellow { background:#fde68a55; box-shadow:inset 0 -2px 0 #fde68a; }
+  .verses-text span.hl-green { background:#a7f3d055; box-shadow:inset 0 -2px 0 #6ee7b7; }
+  .verses-text span.hl-blue { background:#bfdbfe55; box-shadow:inset 0 -2px 0 #93c5fd; }
+  .verses-text span.hl-pink { background:#fbcfe855; box-shadow:inset 0 -2px 0 #f9a8d4; }
+  .verses-text span.hl-yellow.selected, .verses-text span.hl-green.selected, .verses-text span.hl-blue.selected, .verses-text span.hl-pink.selected { box-shadow:inset 0 0 0 1px #c9a86766, inset 0 -2px 0 currentColor; }
+
+  .pager { display:flex; justify-content:space-between; align-items:center; padding:10px 16px; border-top:1px solid var(--border); background:var(--bg-header); }
+  .pager button { background:none; border:1px solid var(--border); color:var(--gold); padding:6px 12px; border-radius:8px; font-family:'Fraunces'; font-size:13px; cursor:pointer; }
+  .pager button:disabled { opacity:.35; pointer-events:none; }
+  .skeleton { display:flex; flex-direction:column; gap:12px; } .skel-line { height:14px; background:linear-gradient(90deg,#1d2740 25%,#23304e 50%,#1d2740 75%); background-size:200% 100%; animation:shimmer 1.4s infinite; border-radius:4px; }
+  @keyframes shimmer{ 0%{background-position:200% 0} 100%{background-position:-200% 0} }
+  .state-msg { text-align:center; padding:40px 20px; color:var(--ink-dim); }
+
+  /* AI Panel */
+  #aiPanel { position:fixed; right:0; top:0; height:100%; width:94vw; max-width:440px; background:linear-gradient(180deg,var(--bg-panel) 0%, #0d1426 100%); border-left:1px solid var(--panel-border); display:flex; flex-direction:column; transform:translateX(100%); transition:transform .35s cubic-bezier(.4,0,.2,1); z-index:31; box-shadow:-20px 0 60px rgba(0,0,0,.5); }
+  #aiPanel.open { transform:translateX(0); }
+  .ai-head { padding:16px 18px; border-bottom:1px solid var(--panel-border); display:flex; justify-content:space-between; align-items:center; flex-shrink:0; }
+  .ai-head h2 { font-family:'Fraunces'; font-size:16px; color:var(--ink); margin:0; font-weight:500; }
+  .ai-head h2 span { color:var(--gold); font-weight:600; }
+  #closeAiBtn { background:none; border:none; color:var(--ink-dim); cursor:pointer; padding:6px; }
+  .ai-tabs { display:flex; gap:4px; padding:10px 12px; border-bottom:1px solid var(--panel-border); flex-shrink:0; overflow-x:auto; }
+  .ai-tab { flex:1; min-width:70px; padding:8px 6px; border-radius:8px; border:1px solid transparent; background:transparent; color:var(--ink-dim); font-family:'Fraunces'; font-size:11.5px; cursor:pointer; transition:.2s; white-space:nowrap; }
+  .ai-tab.active { background:#1e2a4a; border-color:#2f3d66; color:var(--gold-soft); }
+  .ai-content { flex:1; overflow-y:auto; padding:16px; display:flex; flex-direction:column; gap:14px; }
+  .ai-content::-webkit-scrollbar{ width:6px; } .ai-content::-webkit-scrollbar-thumb{ background:#2f3d66; border-radius:3px; }
+  .ai-card { background:#1a2440; border:1px solid var(--panel-border); border-radius:12px; padding:14px; }
+  .ai-card.gold { background:#211e16; border-color:#c9a86722; }
+  .ai-card h3 { font-family:'Fraunces'; font-size:11px; letter-spacing:.08em; text-transform:uppercase; color:var(--gold); margin:0 0 8px; }
+  .ai-card p { font-size:14px; line-height:1.6; margin:0; color:var(--ink); }
+  .ai-card .verse-ref { font-family:'Fraunces'; font-size:13px; color:var(--gold); margin-bottom:6px; }
+  .ai-card .verse-text { font-style:italic; color:var(--gold-soft); font-size:14px; line-height:1.5; margin-bottom:10px; }
+  .bullet { display:flex; gap:10px; margin:10px 0; }
+  .bullet .num { width:22px; height:22px; border-radius:50%; background:#c9a86722; border:1px solid #c9a86733; display:grid; place-items:center; font-size:11px; color:var(--gold); flex-shrink:0; font-family:'Fraunces'; }
+  .bullet p { font-size:14px; line-height:1.55; }
+
+  .hl-controls { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+  .hl-btn { width:32px; height:32px; border-radius:8px; border:2px solid transparent; cursor:pointer; display:grid; place-items:center; transition:.2s; }
+  .hl-btn.yellow { background:#fde68a; } .hl-btn.green { background:#a7f3d0; } .hl-btn.blue { background:#bfdbfe; } .hl-btn.pink { background:#fbcfe8; }
+  .hl-btn.clear { background:transparent; border-color:var(--border); color:var(--ink-dim); font-size:12px; width:auto; padding:0 10px; font-family:'Fraunces'; }
+  .hl-btn.active { border-color:var(--gold); box-shadow:0 0 0 2px #c9a86744; }
+  .hl-btn:hover { transform:translateY(-1px); }
+
+  .scripture-source { margin-top:10px; padding:10px; background:#141e36; border:1px solid #2a3658; border-radius:8px; }
+  .scripture-source .ref { font-family:'Fraunces'; font-size:12px; color:var(--gold); font-weight:600; }
+  .scripture-source .text { font-size:13px; color:var(--ink); line-height:1.5; margin-top:4px; }
+
+  #aiChatLog { display:flex; flex-direction:column; gap:10px; flex:1; min-height:200px; }
+  .msg { max-width:88%; padding:10px 12px; border-radius:12px; font-size:13.5px; line-height:1.55; }
+  .msg.user { align-self:flex-end; background:var(--gold); color:var(--bg); border-bottom-right-radius:4px; }
+  .msg.ai { align-self:flex-start; background:#1e2a4a; border:1px solid #2a3658; color:var(--ink); border-bottom-left-radius:4px; }
+  .ai-empty { text-align:center; padding:30px 16px; color:var(--ink-dim); }
+  .ai-action-btn { width:100%; padding:10px; border-radius:10px; border:1px solid #2f3d66; background:#1d2744; color:var(--gold-soft); font-family:'Fraunces'; font-size:13px; cursor:pointer; }
+  .ai-action-btn:hover { background:var(--gold); color:var(--bg); border-color:var(--gold); }
+  #aiChatForm { display:flex; gap:8px; padding:12px; border-top:1px solid var(--panel-border); background:#0f172c; flex-shrink:0; }
+  #aiChatInput { flex:1; background:var(--bg); border:1px solid #2f3d66; border-radius:10px; padding:10px 12px; color:var(--ink); font-family:'Source Serif 4'; font-size:14px; }
+  #aiChatInput:focus { outline:2px solid var(--gold); }
+  #aiChatSend { background:var(--gold); color:var(--bg); border:none; border-radius:10px; padding:0 14px; cursor:pointer; font-family:'Fraunces'; font-weight:600; }
+
+  .marks-list { display:flex; flex-direction:column; gap:8px; }
+  .mark-item { background:#1a2440; border:1px solid var(--panel-border); border-radius:10px; padding:10px 12px; display:flex; justify-content:space-between; align-items:flex-start; gap:8px; cursor:pointer; }
+  .mark-item:hover { border-color:#c9a86755; }
+  .mark-item .left .ref { font-family:'Fraunces'; font-size:13px; color:var(--gold); }
+  .mark-item .left .snippet { font-size:12px; color:var(--ink-dim); margin-top:3px; line-height:1.4; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+  .mark-item .right { display:flex; gap:6px; align-items:center; flex-shrink:0; }
+  .color-dot { width:12px; height:12px; border-radius:50%; }
+  .color-dot.yellow { background:#fde68a; } .color-dot.green { background:#a7f3d0; } .color-dot.blue { background:#bfdbfe; } .color-dot.pink { background:#fbcfe8; }
+  .icon-btn { background:none; border:1px solid var(--border); color:var(--ink-dim); border-radius:6px; padding:4px 8px; font-size:11px; cursor:pointer; font-family:'Fraunces'; }
+  .icon-btn:hover { color:var(--ink); border-color:var(--gold); }
+
+  .fade-in { animation:fade .3s ease; } @keyframes fade{ from{opacity:0; transform:translateY(6px)} to{opacity:1; transform:none} }
+  @media(max-width:700px){ #aiPanel{ width:100vw; max-width:100vw; } .verses-text{ font-size:17px; } }
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <button id="openNavBtn">Books</button>
+    <div id="headerTitle" class="font-display">Genesis 1</div>
+    <div class="header-right">
+      <button id="bookmarkBtn" title="Bookmark this chapter">Bookmark</button>
+      <button id="openAiBtn">Study</button>
+      <button id="compareBtn">Compare</button>
+      <select id="versionSelect"><option value="kjv">KJV</option><option value="web" selected>WEB</option></select>
+    </div>
+  </header>
+
+  <div id="body">
+    <div id="overlay"></div>
+    <nav id="drawer">
+      <div class="drawer-head"><div class="title">The Books<small>66 books</small></div><button id="closeNavBtn">Close</button></div>
+      <div class="search-wrap"><input id="bookSearch" placeholder="Search books" /></div>
+      <div id="bookmarkList"></div>
+      <div id="bookList"></div>
+      <div class="chapter-picker"><div style="font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:#c9a86799; margin-bottom:8px; font-family:Fraunces">Chapters</div><div id="chapterGrid" class="chapter-grid"></div></div>
+    </nav>
+
+    <div id="panes">
+      <div class="pane" data-pane="a">
+        <div class="pane-toolbar"><button class="pane-ref-btn font-display">Genesis 1</button><span style="font-size:11px;color:var(--ink-dim)">WEB</span></div>
+        <div class="reader-main" id="main-a"><div class="reader-inner"></div></div>
+        <div class="pager"><button class="prev-btn" data-pane="a">Prev</button><span class="pager-label font-display" style="font-size:12px;color:var(--ink-dim)"></span><button class="next-btn" data-pane="a">Next</button></div>
+      </div>
+      <div class="pane" data-pane="b" style="display:none">
+        <div class="pane-toolbar"><button class="pane-ref-btn font-display">Genesis 1</button><span style="font-size:11px;color:var(--ink-dim)">KJV</span></div>
+        <div class="reader-main" id="main-b"><div class="reader-inner"></div></div>
+        <div class="pager"><button class="prev-btn" data-pane="b">Prev</button><span class="pager-label font-display" style="font-size:12px;color:var(--ink-dim)"></span><button class="next-btn" data-pane="b">Next</button></div>
+      </div>
+    </div>
+
+    <aside id="aiPanel">
+      <div class="ai-head"><h2><span>Study</span> Assistant</h2><button id="closeAiBtn">Close</button></div>
+      <div class="ai-tabs">
+        <button class="ai-tab active" data-tab="chapter">Chapter</button>
+        <button class="ai-tab" data-tab="verse">Verse</button>
+        <button class="ai-tab" data-tab="chat">Chatbot</button>
+        <button class="ai-tab" data-tab="marks">Marks</button>
+      </div>
+      <div class="ai-content" id="aiContent"></div>
+      <form id="aiChatForm" style="display:none"><input id="aiChatInput" placeholder="Ask grounded in scripture..." autocomplete="off"/><button id="aiChatSend" type="submit">Send</button></form>
+    </aside>
+  </div>
+</div>
+
+<script>
+(() => {
+  const BOOKS = [
+    ["Genesis","Genesis",50,"law","Beginnings and covenant"],["Exodus","Exodus",40,"law","Deliverance and law"],["Leviticus","Leviticus",27,"law","Holiness"],["Numbers","Numbers",36,"law","Wandering"],["Deuteronomy","Deuteronomy",34,"law","Covenant renewal"],
+    ["Joshua","Joshua",24,"history","Conquest"],["Judges","Judges",21,"history","Deliverers"],["Ruth","Ruth",4,"history","Redemption"],["1 Samuel","1 Samuel",31,"history","Kingship"],["2 Samuel","2 Samuel",24,"history","David"],["1 Kings","1 Kings",22,"history","Divided kingdom"],["2 Kings","2 Kings",25,"history","Exile"],["1 Chronicles","1 Chronicles",29,"history","Retelling"],["2 Chronicles","2 Chronicles",36,"history","Temple"],["Ezra","Ezra",10,"history","Return"],["Nehemiah","Nehemiah",13,"history","Restoration"],["Esther","Esther",10,"history","Providence"],
+    ["Job","Job",42,"poetry","Suffering"],["Psalms","Psalm",150,"poetry","Worship"],["Proverbs","Proverbs",31,"poetry","Wisdom"],["Ecclesiastes","Ecclesiastes",12,"poetry","Meaning"],["Song of Solomon","Song of Songs",8,"poetry","Love"],
+    ["Isaiah","Isaiah",66,"prophets","Hope"],["Jeremiah","Jeremiah",52,"prophets","New covenant"],["Lamentations","Lamentations",5,"prophets","Lament"],["Ezekiel","Ezekiel",48,"prophets","Restoration"],["Daniel","Daniel",12,"prophets","Sovereignty"],
+    ["Hosea","Hosea",14,"prophets","Faithful love"],["Joel","Joel",3,"prophets","Spirit"],["Amos","Amos",9,"prophets","Justice"],["Obadiah","Obadiah",1,"prophets","Humility"],["Jonah","Jonah",4,"prophets","Mercy"],["Micah","Micah",7,"prophets","Bethlehem"],["Nahum","Nahum",3,"prophets","Comfort"],["Habakkuk","Habakkuk",3,"prophets","Faith"],["Zephaniah","Zephaniah",3,"prophets","Day of Lord"],["Haggai","Haggai",2,"prophets","Temple"],["Zechariah","Zechariah",14,"prophets","Messiah"],["Malachi","Malachi",4,"prophets","Messenger"],
+    ["Matthew","Matthew",28,"gospels","Kingdom"],["Mark","Mark",16,"gospels","Servant"],["Luke","Luke",24,"gospels","Savior"],["John","John",21,"gospels","Word"],
+    ["Acts","Acts",28,"history-nt","Spirit"],
+    ["Romans","Romans",16,"letters","Righteousness"],["1 Corinthians","1 Corinthians",16,"letters","Unity"],["2 Corinthians","2 Corinthians",13,"letters","Reconciliation"],["Galatians","Galatians",6,"letters","Freedom"],["Ephesians","Ephesians",6,"letters","Church"],["Philippians","Philippians",4,"letters","Joy"],["Colossians","Colossians",4,"letters","Christ"],["1 Thessalonians","1 Thessalonians",5,"letters","Hope"],["2 Thessalonians","2 Thessalonians",3,"letters","Perseverance"],["1 Timothy","1 Timothy",6,"letters","Leadership"],["2 Timothy","2 Timothy",4,"letters","Endurance"],["Titus","Titus",3,"letters","Good works"],["Philemon","Philemon",1,"letters","Forgiveness"],
+    ["Hebrews","Hebrews",13,"letters","Better covenant"],["James","James",5,"letters","Faith works"],["1 Peter","1 Peter",5,"letters","Suffering"],["2 Peter","2 Peter",3,"letters","Truth"],["1 John","1 John",5,"letters","Love"],["2 John","2 John",1,"letters","Truth"],["3 John","3 John",1,"letters","Hospitality"],["Jude","Jude",1,"letters","Contend"],
+    ["Revelation","Revelation",22,"prophecy","Victory"]
+  ];
+  const VERSIONS = [["kjv","KJV"],["web","WEB"]];
+  const SCRIPTURE_KB = [
+    {ref:"John 3:16", text:"For God so loved the world, that he gave his one and only Son, that whoever believes in him should not perish, but have eternal life.", topics:["salvation","love","faith","eternal life"]},
+    {ref:"Romans 8:28", text:"We know that all things work together for good for those who love God, to those who are called according to his purpose.", topics:["suffering","purpose","hope"]},
+    {ref:"Philippians 4:6-7", text:"In nothing be anxious, but in everything, by prayer and petition with thanksgiving, let your requests be made known to God.", topics:["anxiety","peace","prayer","fear"]},
+    {ref:"Jeremiah 29:11", text:"For I know the thoughts that I think toward you, says Yahweh, thoughts of peace, and not of evil, to give you hope and a future.", topics:["future","hope","plans"]},
+    {ref:"Psalm 23:1-3", text:"Yahweh is my shepherd; I shall lack nothing. He makes me lie down in green pastures.", topics:["peace","provision","rest"]},
+    {ref:"1 Corinthians 13:4-7", text:"Love is patient and is kind. Love does not envy. Love does not brag, is not proud.", topics:["love","patience"]},
+    {ref:"Isaiah 41:10", text:"Do not be afraid, for I am with you. Do not be dismayed, for I am your God. I will strengthen you.", topics:["fear","strength","courage"]},
+    {ref:"Matthew 11:28-30", text:"Come to me, all you who labor and are heavily burdened, and I will give you rest.", topics:["rest","burden","weary"]},
+    {ref:"Romans 6:23", text:"For the wages of sin is death, but the free gift of God is eternal life in Christ Jesus our Lord.", topics:["sin","death","gift","salvation"]},
+    {ref:"Ephesians 2:8-9", text:"For by grace you have been saved through faith, and that not of yourselves; it is the gift of God.", topics:["grace","faith","saved"]},
+    {ref:"Proverbs 3:5-6", text:"Trust in Yahweh with all your heart, and do not lean on your own understanding.", topics:["trust","wisdom","guidance"]},
+    {ref:"1 John 1:9", text:"If we confess our sins, he is faithful and righteous to forgive us the sins and to cleanse us from all unrighteousness.", topics:["forgiveness","confession","sin"]},
+    {ref:"Psalm 46:1", text:"God is our refuge and strength, a very present help in trouble.", topics:["refuge","strength","help"]},
+    {ref:"John 14:6", text:"Jesus said to him, I am the way, the truth, and the life. No one comes to the Father, except through me.", topics:["way","truth","life","jesus"]}
+  ];
+
+  const STORAGE_HL = "bible_highlights_v2";
+  const STORAGE_BM = "bible_bookmarks_v2";
+
+  function getHighlights(){
+    try { return JSON.parse(localStorage.getItem(STORAGE_HL) || "{}"); } catch { return {}; }
+  }
+  function saveHighlight(key, data){
+    const all = getHighlights(); all[key]=data; localStorage.setItem(STORAGE_HL, JSON.stringify(all));
+  }
+  function removeHighlight(key){
+    const all = getHighlights(); delete all[key]; localStorage.setItem(STORAGE_HL, JSON.stringify(all));
+  }
+  function getBookmarks(){
+    try { return JSON.parse(localStorage.getItem(STORAGE_BM) || "[]"); } catch { return []; }
+  }
+  function saveBookmarks(arr){ localStorage.setItem(STORAGE_BM, JSON.stringify(arr)); }
+  function isBookmarked(bookIdx, chapter){
+    return getBookmarks().some(b=> b.bookIdx===bookIdx && b.chapter===chapter);
+  }
+  function toggleBookmark(bookIdx, chapter){
+    let bms = getBookmarks();
+    const idx = bms.findIndex(b=> b.bookIdx===bookIdx && b.chapter===chapter);
+    if(idx>=0){ bms.splice(idx,1); } else { bms.push({bookIdx, chapter, bookName: BOOKS[bookIdx][1], added: Date.now()}); }
+    saveBookmarks(bms); return bms;
+  }
+
+  const panes = { a:{bookIdx:0, chapter:1, version:"web", requestId:0}, b:{bookIdx:0, chapter:1, version:"kjv", requestId:0} };
+  let compareMode=false, cache={}, selectedVerse=null, currentTab="chapter", chatHistory=[];
+
+  const headerTitle=document.getElementById("headerTitle");
+  const versionSelect=document.getElementById("versionSelect");
+  const drawer=document.getElementById("drawer");
+  const overlay=document.getElementById("overlay");
+  const openNavBtn=document.getElementById("openNavBtn");
+  const closeNavBtn=document.getElementById("closeNavBtn");
+  const bookList=document.getElementById("bookList");
+  const bookmarkList=document.getElementById("bookmarkList");
+  const chapterGrid=document.getElementById("chapterGrid");
+  const bookSearch=document.getElementById("bookSearch");
+  const compareBtn=document.getElementById("compareBtn");
+  const openAiBtn=document.getElementById("openAiBtn");
+  const closeAiBtn=document.getElementById("closeAiBtn");
+  const aiPanel=document.getElementById("aiPanel");
+  const aiContent=document.getElementById("aiContent");
+  const aiChatForm=document.getElementById("aiChatForm");
+  const aiChatInput=document.getElementById("aiChatInput");
+  const bookmarkBtn=document.getElementById("bookmarkBtn");
+
+  function paneEl(sel,k){ return document.querySelector(`.pane[data-pane="${k}"] ${sel}`); }
+  function openDrawer(){ drawer.classList.add("open"); overlay.classList.add("open"); }
+  function closeDrawer(){ drawer.classList.remove("open"); if(!aiPanel.classList.contains("open")) overlay.classList.remove("open"); }
+  openNavBtn.addEventListener("click", openDrawer);
+  closeNavBtn.addEventListener("click", closeDrawer);
+  overlay.addEventListener("click", ()=>{ closeDrawer(); closeAi(); });
+  function openAi(tab){ aiPanel.classList.add("open"); overlay.classList.add("open"); openAiBtn.classList.add("active"); if(tab) switchTab(tab); }
+  function closeAi(){ aiPanel.classList.remove("open"); openAiBtn.classList.remove("active"); if(!drawer.classList.contains("open")) overlay.classList.remove("open"); }
+  openAiBtn.addEventListener("click", ()=>{ if(aiPanel.classList.contains("open")) closeAi(); else openAi(currentTab); });
+  closeAiBtn.addEventListener("click", closeAi);
+  compareBtn.addEventListener("click", ()=>{
+    compareMode=!compareMode; document.body.classList.toggle("compare-mode", compareMode); compareBtn.classList.toggle("active", compareMode);
+    document.querySelector('.pane[data-pane="b"]').style.display = compareMode ? "flex" : "none";
+    if(compareMode) loadPane("b"); else headerTitle.textContent = BOOKS[panes.a.bookIdx][1]+" "+panes.a.chapter;
+  });
+  versionSelect.addEventListener("change", ()=>{ panes.a.version=versionSelect.value; loadPane("a"); });
+  bookmarkBtn.addEventListener("click", ()=>{
+    const p=panes.a; const bms=toggleBookmark(p.bookIdx, p.chapter);
+    updateBookmarkUI(); renderBookmarkList(); renderChapterGrid(); renderBookList(bookSearch.value);
+    if(isBookmarked(p.bookIdx,p.chapter)) { bookmarkBtn.textContent="Bookmarked"; bookmarkBtn.classList.add("active"); } else { bookmarkBtn.textContent="Bookmark"; bookmarkBtn.classList.remove("active"); }
+    if(currentTab==="marks") renderMarks();
+  });
+
+  function updateBookmarkUI(){
+    const p=panes.a;
+    if(isBookmarked(p.bookIdx,p.chapter)){ bookmarkBtn.textContent="Bookmarked"; bookmarkBtn.classList.add("active"); } else { bookmarkBtn.textContent="Bookmark"; bookmarkBtn.classList.remove("active"); }
+  }
+
+  function renderBookmarkList(){
+    const bms=getBookmarks().sort((a,b)=> b.added-a.added);
+    bookmarkList.innerHTML="";
+    if(bms.length===0){ bookmarkList.classList.remove("has-items"); return; }
+    bookmarkList.classList.add("has-items");
+    const h=document.createElement("h4"); h.textContent="Bookmarks"; bookmarkList.appendChild(h);
+    bms.slice(0,20).forEach(bm=>{
+      const div=document.createElement("div"); div.className="bm-item";
+      div.innerHTML=`<span>${bm.bookName} ${bm.chapter}</span><button>Remove</button>`;
+      div.addEventListener("click", (e)=>{ if(e.target.tagName==="BUTTON") return; panes.a.bookIdx=bm.bookIdx; panes.a.chapter=bm.chapter; if(compareMode){ panes.b.bookIdx=bm.bookIdx; panes.b.chapter=bm.chapter; loadPane("b"); } renderBookList(""); renderChapterGrid(); loadPane("a"); closeDrawer(); });
+      div.querySelector("button").addEventListener("click", (e)=>{ e.stopPropagation(); toggleBookmark(bm.bookIdx, bm.chapter); renderBookmarkList(); renderChapterGrid(); renderBookList(""); updateBookmarkUI(); if(currentTab==="marks") renderMarks(); });
+      bookmarkList.appendChild(div);
+    });
+  }
+
+  function renderBookList(filter=""){
+    bookList.innerHTML=""; const groups={}; BOOKS.forEach((b,i)=>{ const g=b[3]; if(!groups[g]) groups[g]=[]; groups[g].push([b,i]); });
+    Object.keys(groups).forEach(gName=>{
+      const filtered = groups[gName].filter(([b])=> !filter || b[1].toLowerCase().includes(filter.toLowerCase()) || b[0].toLowerCase().includes(filter.toLowerCase()));
+      if(!filtered.length) return;
+      const label=document.createElement("div"); label.className="section-label"; label.textContent=gName.toUpperCase(); bookList.appendChild(label);
+      filtered.forEach(([b,idx])=>{
+        const isBMarked = getBookmarks().some(bm=> bm.bookIdx===idx);
+        const btn=document.createElement("button"); btn.className="book-btn"+(isBMarked?" bookmarked":"")+(idx===panes.a.bookIdx?" active":"");
+        btn.innerHTML=`<span>${b[1]}</span><span class="mark-dot"></span>`;
+        btn.addEventListener("click", ()=>{ panes.a.bookIdx=idx; panes.a.chapter=1; if(compareMode){ panes.b.bookIdx=idx; panes.b.chapter=1; loadPane("b"); } renderBookList(bookSearch.value); renderChapterGrid(); loadPane("a"); closeDrawer(); updateBookmarkUI(); });
+        bookList.appendChild(btn);
+      });
+    });
+  }
+  bookSearch.addEventListener("input", e=> renderBookList(e.target.value));
+  function renderChapterGrid(){
+    chapterGrid.innerHTML=""; const book=BOOKS[panes.a.bookIdx];
+    for(let i=1;i<=book[2];i++){
+      const bm = isBookmarked(panes.a.bookIdx,i);
+      const btn=document.createElement("button"); btn.className="ch-btn"+(i===panes.a.chapter?" active":"")+(bm?" bookmarked":""); btn.textContent=i;
+      btn.addEventListener("click", ()=>{ panes.a.chapter=i; if(compareMode){ panes.b.chapter=i; loadPane("b"); } renderChapterGrid(); loadPane("a"); closeDrawer(); updateBookmarkUI(); });
+      chapterGrid.appendChild(btn);
+    }
+  }
+  function goPrev(k){ const p=panes[k]; if(p.chapter>1) p.chapter--; else if(p.bookIdx>0){ p.bookIdx--; p.chapter=BOOKS[p.bookIdx][2]; } else return; if(k==="a"){ renderBookList(bookSearch.value); renderChapterGrid(); updateBookmarkUI(); } loadPane(k); }
+  function goNext(k){ const p=panes[k]; const b=BOOKS[p.bookIdx]; if(p.chapter<b[2]) p.chapter++; else if(p.bookIdx<BOOKS.length-1){ p.bookIdx++; p.chapter=1; } else return; if(k==="a"){ renderBookList(bookSearch.value); renderChapterGrid(); updateBookmarkUI(); } loadPane(k); }
+  document.querySelectorAll(".prev-btn").forEach(btn=> btn.addEventListener("click", ()=> goPrev(btn.dataset.pane)));
+  document.querySelectorAll(".next-btn").forEach(btn=> btn.addEventListener("click", ()=> goNext(btn.dataset.pane)));
+
+  function loadPane(k){
+    const p=panes[k]; const book=BOOKS[p.bookIdx];
+    updateHeader(k); updatePager(k);
+    const key=p.version+"/"+book[0]+"/"+p.chapter;
+    if(cache[key]){ renderVerses(k, cache[key]); if(k==="a"){ renderCurrentTab(); updateBookmarkUI(); } return; }
+    const req=++p.requestId; renderLoading(k);
+    const ref=encodeURIComponent(book[0]+" "+p.chapter);
+    const url="https://bible-api.com/"+ref+"?translation="+p.version;
+    fetch(url).then(r=>{ if(!r.ok) throw new Error("http-"+r.status); return r.json(); }).then(data=>{
+      if(req!==p.requestId) return; if(data.error) throw new Error("api-error");
+      const verses=Array.isArray(data.verses) ? data.verses.map(v=>({verse:v.verse, text:(v.text||"").replace(/\s+/g," ").trim()})) : [];
+      cache[key]=verses; renderVerses(k, verses); if(k==="a"){ renderCurrentTab(); updateBookmarkUI(); }
+    }).catch(err=>{ if(req!==p.requestId) return; renderError(k, err.message); });
+  }
+  function updateHeader(k){
+    const book=BOOKS[panes[k].bookIdx]; const label=book[1]+" "+panes[k].chapter;
+    if(k==="a" && !compareMode) headerTitle.textContent=label;
+    if(compareMode){ paneEl(".pane-ref-btn", k).textContent=label; headerTitle.textContent="Comparing"; }
+  }
+  function updatePager(k){
+    const p=panes[k]; const b=BOOKS[p.bookIdx];
+    paneEl(".prev-btn", k).disabled = p.bookIdx===0 && p.chapter===1;
+    paneEl(".next-btn", k).disabled = p.bookIdx===BOOKS.length-1 && p.chapter===b[2];
+    paneEl(".pager-label", k).textContent = b[1]+" · Ch "+p.chapter+"/"+b[2];
+  }
+  function versionName(id){ return id.toUpperCase(); }
+  function renderLoading(k){ const inner=paneEl(".reader-inner", k); inner.innerHTML=""; const w=document.createElement("div"); w.className="skeleton"; for(let i=0;i<7;i++){ const l=document.createElement("div"); l.className="skel-line"; l.style.width=(70+(i%3)*10)+"%"; w.appendChild(l);} inner.appendChild(w); }
+  function renderError(k, reason){ const p=panes[k]; const b=BOOKS[p.bookIdx]; const inner=paneEl(".reader-inner", k); inner.innerHTML=`<div class="state-msg"><p>${b[1]} ${p.chapter} failed (${reason})</p></div>`; }
+
+  function renderVerses(paneKey, verses){
+    const p=panes[paneKey]; const book=BOOKS[p.bookIdx]; const inner=paneEl(".reader-inner", paneKey); inner.innerHTML="";
+    if(!verses.length){ inner.innerHTML='<div class="state-msg"><p>No verses</p></div>'; return; }
+    const cont=document.createElement("div"); cont.className="fade-in";
+    const head=document.createElement("div"); head.className="chapter-heading";
+    const isBm=isBookmarked(p.bookIdx,p.chapter);
+    head.innerHTML=`<div class="left"><div class="eyebrow">${versionName(p.version)} · public domain</div><h1>${book[1]} <span class="chnum">${p.chapter}</span></h1></div><div class="right"><button id="chapBmBtn-${paneKey}" class="${isBm?"active":""}">${isBm?"Bookmarked":"Bookmark"}</button></div>`;
+    cont.appendChild(head);
+    const vEl=document.createElement("div"); vEl.className="verses-text";
+    const highlights=getHighlights();
+    verses.forEach(v=>{
+      const key=`${book[0]}-${p.chapter}-${v.verse}`;
+      const hl=highlights[key];
+      const span=document.createElement("span"); span.dataset.verse=v.verse; span.dataset.key=key;
+      if(hl) span.className=`hl-${hl.color}`;
+      const sup=document.createElement("sup"); sup.textContent=v.verse; span.appendChild(sup);
+      span.appendChild(document.createTextNode(v.text+" "));
+      span.addEventListener("click", ()=>{
+        document.querySelectorAll(".verses-text span").forEach(s=> s.classList.remove("selected"));
+        span.classList.add("selected");
+        selectedVerse={bookName:book[1], chapter:p.chapter, verseNum:v.verse, text:v.text, bookIdx:p.bookIdx, key:key, color:hl?hl.color:null};
+        openAi("verse");
+      });
+      vEl.appendChild(span);
+    });
+    cont.appendChild(vEl); inner.appendChild(cont);
+    paneEl(".reader-main", paneKey).scrollTo({top:0, behavior:"instant"});
+    const chapBtn=document.getElementById(`chapBmBtn-${paneKey}`);
+    if(chapBtn){ chapBtn.addEventListener("click", ()=>{ toggleBookmark(p.bookIdx,p.chapter); renderBookmarkList(); renderChapterGrid(); renderBookList(""); updateBookmarkUI(); renderVerses(paneKey, verses); if(currentTab==="marks") renderMarks(); }); }
+  }
+
+  function switchTab(tab){
+    currentTab=tab; document.querySelectorAll(".ai-tab").forEach(t=> t.classList.toggle("active", t.dataset.tab===tab));
+    if(tab==="chat") aiChatForm.style.display="flex"; else aiChatForm.style.display="none";
+    renderCurrentTab();
+  }
+  document.querySelectorAll(".ai-tab").forEach(t=> t.addEventListener("click", ()=> switchTab(t.dataset.tab)));
+  function renderCurrentTab(){
+    if(currentTab==="chapter") renderChapterSummary();
+    else if(currentTab==="verse") renderVerseSummary();
+    else if(currentTab==="chat") renderChat();
+    else if(currentTab==="marks") renderMarks();
+  }
+
+  function renderChapterSummary(){
+    const p=panes.a; const book=BOOKS[p.bookIdx]; const key=p.version+"/"+book[0]+"/"+p.chapter; const verses=cache[key];
+    if(!verses || !verses.length){ aiContent.innerHTML='<div class="ai-empty"><p>Load a chapter to see summary</p></div>'; return; }
+    const allText = verses.map(v=>v.text).join(" ").toLowerCase();
+    const words = allText.match(/\b\w{4,}\b/g) || []; const freq={}; words.forEach(w=> freq[w]=(freq[w]||0)+1);
+    const scored = verses.map(v=>{
+      const ws=v.text.toLowerCase().match(/\b\w{4,}\b/g)||[]; let s=ws.reduce((a,w)=> a+(freq[w]||0),0)/(ws.length||1);
+      if(v.verse===1) s+=4; return {...v, score:s};
+    }).sort((a,b)=> b.score-a.score).slice(0,5).sort((a,b)=> a.verse-b.verse);
+    const overview = `${book[1]} ${book[4].toLowerCase()}. ${book[1]} ${p.chapter} contains ${verses.length} verses. The central theme is ${extractTheme(verses).toLowerCase()}.`;
+    const structure = `Verses 1-${Math.ceil(verses.length/3)} introduce, ${Math.ceil(verses.length/3)+1}-${Math.ceil(verses.length*2/3)} develop, ${Math.ceil(verses.length*2/3)+1}-${verses.length} conclude.`;
+    aiContent.innerHTML=`<div class="ai-card"><h3>Chapter Summary</h3><p>${overview}</p></div><div class="ai-card gold"><h3>Key Points</h3>${scored.map((v,i)=> `<div class="bullet"><div class="num">${i+1}</div><p><strong>Verse ${v.verse}:</strong> ${v.text.slice(0,180)}</p></div>`).join("")}</div><div class="ai-card"><h3>Structure</h3><p>${structure}</p></div>`;
+  }
+  function extractTheme(verses){
+    const text = verses.map(v=>v.text).join(" ").toLowerCase();
+    if(text.includes("love")) return "God's faithful love as foundation for obedience";
+    if(text.includes("faith") || text.includes("believe")) return "Trust in God over human strength";
+    if(text.includes("sin") || text.includes("forgive")) return "Sin and provision of atonement";
+    return "God initiates and calls for faithful response";
+  }
+  function renderVerseSummary(){
+    if(!selectedVerse){
+      aiContent.innerHTML=`<div class="ai-empty"><p>Select a verse by tapping it to see summary and highlighting.</p></div>`;
+      return;
+    }
+    const v=selectedVerse;
+    const meaning = generateVerseMeaning(v);
+    aiContent.innerHTML=`
+      <div class="ai-card gold"><div class="verse-ref">${v.bookName} ${v.chapter}:${v.verseNum}</div><div class="verse-text">"${v.text}"</div>
+        <div class="hl-controls">
+          <button class="hl-btn yellow ${v.color==="yellow"?"active":""}" data-color="yellow" title="Yellow highlight"></button>
+          <button class="hl-btn green ${v.color==="green"?"active":""}" data-color="green" title="Green highlight"></button>
+          <button class="hl-btn blue ${v.color==="blue"?"active":""}" data-color="blue" title="Blue highlight"></button>
+          <button class="hl-btn pink ${v.color==="pink"?"active":""}" data-color="pink" title="Pink highlight"></button>
+          <button class="hl-btn clear" data-color="clear">Clear</button>
+        </div>
+      </div>
+      <div class="ai-card"><h3>Verse Summary</h3><p>${meaning.meaning}</p></div>
+      <div class="ai-card"><h3>In Context</h3><p>${meaning.context}</p></div>
+      <div class="ai-card"><h3>Application</h3><p>${meaning.application}</p></div>
+    `;
+    aiContent.querySelectorAll(".hl-btn").forEach(btn=>{
+      btn.addEventListener("click", ()=>{
+        const color=btn.dataset.color;
+        if(color==="clear"){ removeHighlight(v.key); selectedVerse.color=null; }
+        else { saveHighlight(v.key, {color, text:v.text, ref:`${v.bookName} ${v.chapter}:${v.verseNum}`, bookIdx:v.bookIdx, chapter:v.chapter, verseNum:v.verseNum, bookName:v.bookName, added:Date.now()}); selectedVerse.color=color; }
+        // re-render verses in both panes
+        const p=panes.a; const book=BOOKS[p.bookIdx]; const key=p.version+"/"+book[0]+"/"+p.chapter; const verses=cache[key]; if(verses) renderVerses("a", verses);
+        if(compareMode){ const keyB=panes.b.version+"/"+BOOKS[panes.b.bookIdx][0]+"/"+panes.b.chapter; const versesB=cache[keyB]; if(versesB) renderVerses("b", versesB); }
+        renderVerseSummary();
+        if(currentTab==="marks") renderMarks();
+      });
+    });
+  }
+  function generateVerseMeaning(v){
+    const low=v.text.toLowerCase();
+    let meaning=`This verse centers on ${low.includes("lord")||low.includes("god")?"God's initiative":"human response"}. ${low.includes("love")?"Love is covenant loyalty, not fleeting emotion.":""} ${low.includes("faith")||low.includes("believe")?"Faith is active trust that obeys.":""}`;
+    const context=`In ${v.bookName} ${v.chapter}, verse ${v.verseNum} functions as ${v.verseNum<=3?"opening frame":"pivotal link"}. Surrounding verses ${Math.max(1,v.verseNum-2)}-${v.verseNum+2} give immediate context.`;
+    const application=`If ${v.bookName} ${v.chapter}:${v.verseNum} is true, what one practical step does it call for today?`;
+    return {meaning, context, application};
+  }
+
+  function renderChat(){
+    if(aiContent.querySelector("#aiChatLog")) return;
+    aiContent.innerHTML=`<div id="aiChatLog"></div><div class="ai-empty" id="chatEmpty"><p>Ask a question and get answers grounded in scripture with references.</p></div>`;
+    const log=document.getElementById("aiChatLog");
+    chatHistory.forEach(m=> addMsg(m.role, m.text, m.sources, false));
+    if(chatHistory.length>0){ const e=document.getElementById("chatEmpty"); if(e) e.style.display="none"; }
+  }
+  function addMsg(role, text, sources, save=true){
+    const logEl=document.getElementById("aiChatLog"); if(!logEl){ renderChat(); }
+    const log=document.getElementById("aiChatLog");
+    const div=document.createElement("div"); div.className="msg "+role;
+    let html=text;
+    if(sources && sources.length){ html+= `<div class="sources">${sources.map(s=> `<div class="scripture-source"><div class="ref">${s.ref}</div><div class="text">${s.text}</div></div>`).join("")}</div>`; }
+    div.innerHTML=html; log.appendChild(div); aiContent.scrollTop=aiContent.scrollHeight;
+    const empty=document.getElementById("chatEmpty"); if(empty) empty.style.display="none";
+    if(save){ chatHistory.push({role, text, sources}); if(chatHistory.length>30) chatHistory.shift(); }
+  }
+  aiChatForm.addEventListener("submit", e=>{
+    e.preventDefault(); const q=aiChatInput.value.trim(); if(!q) return; addMsg("user", q, null); aiChatInput.value="";
+    setTimeout(()=>{ const ans=answerWithScripture(q); addMsg("ai", ans.text, ans.sources); }, 300);
+  });
+  function answerWithScripture(question){
+    const qLow=question.toLowerCase(); const qWords=qLow.match(/\b\w{3,}\b/g)||[];
+    const p=panes.a; const book=BOOKS[p.bookIdx]; const key=p.version+"/"+book[0]+"/"+p.chapter; const currentVerses=cache[key]||[];
+    const kbScored = SCRIPTURE_KB.map(e=>{ let score=0; e.topics.forEach(t=>{ if(qLow.includes(t)) score+=3; }); qWords.forEach(w=>{ if(e.text.toLowerCase().includes(w)) score+=1; }); return {...e, score}; }).filter(e=>e.score>0).sort((a,b)=>b.score-a.score).slice(0,3);
+    const curScored = currentVerses.map(v=>{ let score=0; qWords.forEach(w=>{ if(v.text.toLowerCase().includes(w)) score+=1; }); return {...v, score, ref:`${book[1]} ${p.chapter}:${v.verse}`}; }).filter(v=>v.score>0).sort((a,b)=>b.score-a.score).slice(0,2);
+    let sources=[...kbScored, ...curScored.map(v=>({ref:v.ref, text:v.text}))].slice(0,4);
+    if(!sources.length) sources=currentVerses.slice(0,2).map(v=>({ref:`${book[1]} ${p.chapter}:${v.verse}`, text:v.text}));
+    let text="";
+    if(kbScored.length){ const main=kbScored[0]; text=`Based on scripture, ${main.ref} teaches: "${main.text.slice(0,140)}". This directly addresses your question about "${question.slice(0,50)}".`; }
+    else if(curScored.length){ text=`In ${book[1]} ${p.chapter}, verse ${curScored[0].ref.split(":")[1]} speaks to this: "${curScored[0].text.slice(0,150)}".`; }
+    else { text=`Consider ${book[1]} ${p.chapter} which speaks to ${extractTheme(currentVerses).toLowerCase()}.`; }
+    return {text, sources};
+  }
+
+  function renderMarks(){
+    const bms=getBookmarks().sort((a,b)=> b.added-a.added);
+    const hls=Object.entries(getHighlights()).map(([k,v])=> ({key:k, ...v})).sort((a,b)=> b.added-a.added);
+    let html="";
+    html+=`<div class="ai-card"><h3>Bookmarks (${bms.length})</h3>`;
+    if(!bms.length) html+=`<p style="color:var(--ink-dim);font-size:13px">No bookmarks yet. Tap Bookmark in header to save a chapter.</p>`;
+    else html+=`<div class="marks-list">${bms.map(bm=> `<div class="mark-item" data-type="bm" data-book="${bm.bookIdx}" data-ch="${bm.chapter}"><div class="left"><div class="ref">${bm.bookName} ${bm.chapter}</div><div class="snippet">Bookmarked chapter</div></div><div class="right"><button class="icon-btn remove-bm">Remove</button></div></div>`).join("")}</div>`;
+    html+=`</div>`;
+    html+=`<div class="ai-card"><h3>Highlights (${hls.length})</h3>`;
+    if(!hls.length) html+=`<p style="color:var(--ink-dim);font-size:13px">No highlights yet. Tap a verse then choose a color in Verse tab.</p>`;
+    else html+=`<div class="marks-list">${hls.map(hl=> `<div class="mark-item" data-type="hl" data-key="${hl.key}"><div class="left"><div class="ref"><span class="color-dot ${hl.color}" style="display:inline-block;vertical-align:middle;margin-right:6px"></span>${hl.ref}</div><div class="snippet">${hl.text.slice(0,90)}</div></div><div class="right"><button class="icon-btn remove-hl">Remove</button></div></div>`).join("")}</div>`;
+    html+=`</div>`;
+    html+=`<button class="ai-action-btn" id="clearAllMarks">Clear All Marks</button>`;
+    aiContent.innerHTML=html;
+    aiContent.querySelectorAll(".mark-item[data-type='bm']").forEach(el=>{
+      el.addEventListener("click", (e)=>{
+        if(e.target.classList.contains("remove-bm")){ const bookIdx=parseInt(el.dataset.book); const ch=parseInt(el.dataset.ch); toggleBookmark(bookIdx,ch); renderBookmarkList(); renderChapterGrid(); renderBookList(""); updateBookmarkUI(); renderMarks(); return; }
+        const bookIdx=parseInt(el.dataset.book); const ch=parseInt(el.dataset.ch); panes.a.bookIdx=bookIdx; panes.a.chapter=ch; if(compareMode){ panes.b.bookIdx=bookIdx; panes.b.chapter=ch; loadPane("b"); } renderBookList(""); renderChapterGrid(); loadPane("a"); updateBookmarkUI();
+      });
+    });
+    aiContent.querySelectorAll(".mark-item[data-type='hl']").forEach(el=>{
+      el.addEventListener("click", (e)=>{
+        if(e.target.classList.contains("remove-hl")){ removeHighlight(el.dataset.key); const p=panes.a; const book=BOOKS[p.bookIdx]; const key=p.version+"/"+book[0]+"/"+p.chapter; const verses=cache[key]; if(verses) renderVerses("a", verses); renderMarks(); return; }
+        const hl=getHighlights()[el.dataset.key]; if(hl){ panes.a.bookIdx=hl.bookIdx; panes.a.chapter=hl.chapter; renderBookList(""); renderChapterGrid(); loadPane("a"); setTimeout(()=>{ selectedVerse={bookName:hl.bookName, chapter:hl.chapter, verseNum:hl.verseNum, text:hl.text, bookIdx:hl.bookIdx, key:el.dataset.key, color:hl.color}; openAi("verse"); }, 600); }
+      });
+    });
+    const clearBtn=document.getElementById("clearAllMarks");
+    if(clearBtn) clearBtn.addEventListener("click", ()=>{
+      if(confirm("Clear all bookmarks and highlights?")){ localStorage.removeItem(STORAGE_BM); localStorage.removeItem(STORAGE_HL); renderBookmarkList(); renderChapterGrid(); renderBookList(""); updateBookmarkUI(); const p=panes.a; const book=BOOKS[p.bookIdx]; const key=p.version+"/"+book[0]+"/"+p.chapter; const verses=cache[key]; if(verses) renderVerses("a", verses); renderMarks(); }
+    });
+  }
+
+  // Init
+  renderBookmarkList(); renderBookList(""); renderChapterGrid(); loadPane("a"); updateBookmarkUI();
+  document.addEventListener("keydown", e=>{ if(e.key==="Escape"){ closeDrawer(); closeAi(); } });
+})();
+</script>
+</body>
+</html>
