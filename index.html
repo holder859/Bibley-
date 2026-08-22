@@ -26,15 +26,16 @@
 
   header { display:flex; align-items:center; justify-content:space-between; padding:10px 16px; border-bottom:1px solid var(--border); background:var(--bg-header); flex-shrink:0; gap:8px; }
   @media(min-width:640px){ header{ padding:12px 20px; } }
-  #openNavBtn, #openAiBtn, #compareBtn, #bookmarkBtn {
+  #openNavBtn, #openAiBtn, #compareBtn, #bookmarkBtn, #fullscreenBtn {
     display:flex; align-items:center; gap:6px; background:none; border:1px solid var(--border); color:var(--gold);
     padding:6px 11px; border-radius:8px; font-family:'Fraunces'; font-size:13px; cursor:pointer; transition:.2s;
   }
-  #openNavBtn:hover, #compareBtn:hover, #openAiBtn:hover, #bookmarkBtn:hover { border-color:#c9a86777; color:var(--gold-soft); }
+  #openNavBtn:hover, #compareBtn:hover, #openAiBtn:hover, #bookmarkBtn:hover, #fullscreenBtn:hover { border-color:#c9a86777; color:var(--gold-soft); }
   #openAiBtn { background:#1d2744; border-color:#2f3d66; }
   #openAiBtn.active { background:var(--gold); color:var(--bg); border-color:var(--gold); }
   #bookmarkBtn.active { background:var(--gold); color:var(--bg); border-color:var(--gold); }
   #compareBtn.active { background:var(--gold); color:var(--bg); border-color:var(--gold); }
+  #fullscreenBtn.active { background:var(--gold); color:var(--bg); border-color:var(--gold); }
   #headerTitle { flex:1; text-align:center; font-size:15px; letter-spacing:.02em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
   .header-right { display:flex; gap:6px; align-items:center; }
 
@@ -203,6 +204,7 @@
       <button id="bookmarkBtn" title="Bookmark this chapter">Bookmark</button>
       <button id="openAiBtn">Study</button>
       <button id="compareBtn">Compare</button>
+      <button id="fullscreenBtn" title="Toggle fullscreen">⤢</button>
       <select id="versionSelect"></select>
     </div>
   </header>
@@ -551,6 +553,7 @@
   const aiChatForm=document.getElementById("aiChatForm");
   const aiChatInput=document.getElementById("aiChatInput");
   const bookmarkBtn=document.getElementById("bookmarkBtn");
+  const fullscreenBtn=document.getElementById("fullscreenBtn");
 
   function paneEl(sel,k){ return document.querySelector(`.pane[data-pane="${k}"] ${sel}`); }
   function openDrawer(){ drawer.classList.add("open"); overlay.classList.add("open"); }
@@ -573,6 +576,32 @@
       headerTitle.textContent = BOOKS[panes.a.bookIdx][1]+" "+panes.a.chapter;
     }
   });
+
+  // --- Fullscreen ---
+  const appEl = document.getElementById("app");
+  function isFullscreen(){ return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+  function updateFullscreenBtn(){
+    const on = isFullscreen();
+    fullscreenBtn.classList.toggle("active", on);
+    fullscreenBtn.textContent = on ? "⤡" : "⤢";
+    fullscreenBtn.title = on ? "Exit fullscreen" : "Toggle fullscreen";
+  }
+  async function enterFullscreen(){
+    const el = appEl;
+    try {
+      if(el.requestFullscreen) await el.requestFullscreen();
+      else if(el.webkitRequestFullscreen) await el.webkitRequestFullscreen();
+    } catch(err){ console.warn("Fullscreen request failed", err); }
+  }
+  async function exitFullscreen(){
+    try {
+      if(document.exitFullscreen) await document.exitFullscreen();
+      else if(document.webkitExitFullscreen) await document.webkitExitFullscreen();
+    } catch(err){ console.warn("Fullscreen exit failed", err); }
+  }
+  fullscreenBtn.addEventListener("click", ()=>{ if(isFullscreen()) exitFullscreen(); else enterFullscreen(); });
+  document.addEventListener("fullscreenchange", updateFullscreenBtn);
+  document.addEventListener("webkitfullscreenchange", updateFullscreenBtn);
   function populateVersionSelects(){
     const optsHtml = VERSIONS.map(([id,label])=> `<option value="${id}">${label}</option>`).join("");
     versionSelect.innerHTML = optsHtml;
