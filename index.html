@@ -156,6 +156,13 @@
   .ai-card p { font-size:14px; line-height:1.6; margin:0; color:var(--ink); }
   .ai-card .verse-ref { font-family:'Fraunces'; font-size:13px; color:var(--gold); margin-bottom:6px; }
   .ai-card .verse-text { font-style:italic; color:var(--gold-soft); font-size:14px; line-height:1.5; margin-bottom:10px; }
+  .liturgy-head { display:flex; align-items:center; gap:10px; margin-bottom:4px; }
+  .liturgy-color-dot { width:14px; height:14px; border-radius:50%; flex-shrink:0; border:1px solid rgba(255,255,255,.25); }
+  .liturgy-color-dot.green { background:#3f7d4f; } .liturgy-color-dot.violet { background:#6a4c93; } .liturgy-color-dot.white { background:#e8e1d0; } .liturgy-color-dot.red { background:#a4333f; } .liturgy-color-dot.rose,.liturgy-color-dot.pink { background:#d98ca3; } .liturgy-color-dot.gold,.liturgy-color-dot.black { background:#2a2a2a; }
+  .liturgy-date { font-family:'Fraunces'; font-size:13px; color:var(--gold); }
+  .liturgy-season { font-size:12px; color:var(--ink-dim); text-transform:capitalize; }
+  .liturgy-feast-title { font-family:'Fraunces'; font-size:16px; color:var(--ink); margin:6px 0 2px; }
+  .liturgy-rank { font-size:12px; color:var(--ink-faint); text-transform:capitalize; }
   .bullet { display:flex; gap:10px; margin:10px 0; }
   .bullet .num { width:22px; height:22px; border-radius:50%; background:#c9a86722; border:1px solid #c9a86733; display:grid; place-items:center; font-size:11px; color:var(--gold); flex-shrink:0; font-family:'Fraunces'; }
   .bullet p { font-size:14px; line-height:1.55; }
@@ -176,6 +183,9 @@
   .msg.user { align-self:flex-end; background:var(--gold); color:var(--bg); border-bottom-right-radius:4px; }
   .msg.ai { align-self:flex-start; background:#1e2a4a; border:1px solid #2a3658; color:var(--ink); border-bottom-left-radius:4px; }
   .ai-empty { text-align:center; padding:30px 16px; color:var(--ink-dim); }
+  .chat-memory-note { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:11px; color:var(--ink-faint); background:#1a2440; border:1px solid var(--panel-border); border-radius:8px; padding:6px 10px; margin-bottom:10px; }
+  .chat-memory-note button { background:none; border:1px solid var(--border); color:var(--ink-dim); font-size:11px; padding:2px 8px; border-radius:6px; cursor:pointer; font-family:'Source Serif 4'; }
+  .chat-memory-note button:hover { color:var(--gold); border-color:#c9a86777; }
   .thinking-dots { display:inline-flex; align-items:center; gap:3px; color:var(--ink-dim); font-style:italic; }
   .thinking-dots i { width:4px; height:4px; border-radius:50%; background:var(--gold); display:inline-block; animation:tdot 1.1s infinite ease-in-out; }
   .thinking-dots i:nth-child(2){ animation-delay:.15s; } .thinking-dots i:nth-child(3){ animation-delay:.3s; }
@@ -261,6 +271,7 @@
       <div class="ai-tabs">
         <button class="ai-tab active" data-tab="chapter">Chapter</button>
         <button class="ai-tab" data-tab="verse">Verse</button>
+        <button class="ai-tab" data-tab="today">Today</button>
         <button class="ai-tab" data-tab="chat">Chatbot</button>
         <button class="ai-tab" data-tab="marks">Marks</button>
       </div>
@@ -361,6 +372,8 @@
 
   const STORAGE_HL = "bible_highlights_v2";
   const STORAGE_BM = "bible_bookmarks_v2";
+  const STORAGE_CHAT = "bible_chat_history_v1";
+  const STORAGE_CHAT_SUMMARY = "bible_chat_summary_v1";
 
   function getHighlights(){
     try { return JSON.parse(localStorage.getItem(STORAGE_HL) || "{}"); } catch { return {}; }
@@ -384,9 +397,29 @@
     if(idx>=0){ bms.splice(idx,1); } else { bms.push({bookIdx, chapter, bookName: BOOKS[bookIdx][1], added: Date.now()}); }
     saveBookmarks(bms); return bms;
   }
+  // Chat memory is persisted across reloads/sessions, not just kept in a
+  // page-lifetime array, so the assistant actually "remembers" past study
+  // conversations rather than starting blank every time the app is opened.
+  function loadChatHistory(){
+    try { return JSON.parse(localStorage.getItem(STORAGE_CHAT) || "[]"); } catch { return []; }
+  }
+  function saveChatHistory(arr){
+    try { localStorage.setItem(STORAGE_CHAT, JSON.stringify(arr)); } catch(err){ console.warn("Couldn't persist chat history", err); }
+  }
+  function loadChatSummary(){
+    try { return localStorage.getItem(STORAGE_CHAT_SUMMARY) || ""; } catch { return ""; }
+  }
+  function saveChatSummary(text){
+    try { localStorage.setItem(STORAGE_CHAT_SUMMARY, text || ""); } catch(err){ console.warn("Couldn't persist chat summary", err); }
+  }
+  function clearChatMemory(){
+    chatHistory = []; chatSummary = "";
+    localStorage.removeItem(STORAGE_CHAT); localStorage.removeItem(STORAGE_CHAT_SUMMARY);
+  }
 
   const panes = { a:{bookIdx:0, chapter:1, version:"web", requestId:0}, b:{bookIdx:0, chapter:1, version:"kjv", requestId:0} };
-  let compareMode=false, cache={}, selectedVerse=null, currentTab="chapter", chatHistory=[];
+  let compareMode=false, cache={}, selectedVerse=null, currentTab="chapter";
+  let chatHistory = loadChatHistory(), chatSummary = loadChatSummary();
   let verseSummaryReq=0, chapterSummaryReq=0;
 
   // --- Real AI: two independent free, keyless, browser-callable text APIs ----
@@ -439,17 +472,21 @@
   // Each provider is a plain (system, userMessage, maxTokens) -> text function,
   // so adding a third free provider later just means adding one more entry to
   // AI_PROVIDERS below -- no other code needs to change.
-  async function callLLM7(system, userMessage, maxTokens){
+  //
+  // Both providers can be pointed at stronger models than their bare defaults.
+  // We try the strongest model first and quietly step down if it's rejected,
+  // rather than always calling the smallest/fastest model available.
+  async function callLLM7WithModel(model, system, userMessage, maxTokens){
     const response = await fetchWithTimeout("https://api.llm7.io/v1/chat/completions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "default",
+        model,
         messages: [{ role:"system", content:system }, { role:"user", content:userMessage }],
-        temperature: 0.6,
+        temperature: 0.55,
         max_tokens: maxTokens || 400
       })
-    }, 20000);
+    }, 25000);
     if(!response.ok) throw new Error("api-"+response.status);
     let data;
     try { data = await response.json(); } catch(e) { throw new Error("malformed-response"); }
@@ -457,24 +494,42 @@
     if(!content) throw new Error("empty-response");
     return content;
   }
+  async function callLLM7(system, userMessage, maxTokens){
+    const models = ["gpt-4.1", "gpt-4o", "default"];
+    let lastErr;
+    for(const model of models){
+      try { return await callLLM7WithModel(model, system, userMessage, maxTokens); }
+      catch(err){ lastErr = err; }
+    }
+    throw lastErr;
+  }
 
-  async function callPollinations(system, userMessage, maxTokens){
+  async function callPollinationsWithModel(model, system, userMessage, maxTokens){
     const response = await fetchWithTimeout("https://text.pollinations.ai/openai", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        model: "openai",
+        model,
         messages: [{ role:"system", content:system }, { role:"user", content:userMessage }],
-        temperature: 0.6,
+        temperature: 0.55,
         max_tokens: maxTokens || 400
       })
-    }, 20000);
+    }, 25000);
     if(!response.ok) throw new Error("api-"+response.status);
     let data;
     try { data = await response.json(); } catch(e) { throw new Error("malformed-response"); }
     const content = data && data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content;
     if(!content) throw new Error("empty-response");
     return content;
+  }
+  async function callPollinations(system, userMessage, maxTokens){
+    const models = ["openai-large", "openai", "mistral"];
+    let lastErr;
+    for(const model of models){
+      try { return await callPollinationsWithModel(model, system, userMessage, maxTokens); }
+      catch(err){ lastErr = err; }
+    }
+    throw lastErr;
   }
 
   // Order matters: first entry is the primary provider, tried (with its own
@@ -802,6 +857,7 @@
   function renderCurrentTab(){
     if(currentTab==="chapter") renderChapterSummary();
     else if(currentTab==="verse") renderVerseSummary();
+    else if(currentTab==="today") renderLiturgicalToday();
     else if(currentTab==="chat") renderChat();
     else if(currentTab==="marks") renderMarks();
   }
@@ -835,19 +891,21 @@
     }
   }
   async function generateChapterSummary(book, chapter, verses){
-    const system=`You are a careful, denominationally neutral Bible study assistant. You will be given the text of a Bible chapter. Reply in EXACTLY this plain-text format, nothing else, no markdown:
-OVERVIEW: (2-3 sentences summarizing the chapter's content and central theme)
+    const system=`You are an expert, denominationally neutral Bible study assistant with deep knowledge of biblical history, literary structure, original languages, cross-references, and the wider Christian theological tradition -- including Catholic teaching (the Catechism, Church Fathers, magisterial and conciliar teaching) as well as other Christian traditions. You will be given the full text of a Bible chapter. Think carefully about its historical setting, literary genre, key theological themes, and how it connects to the surrounding narrative before answering. Where relevant and accurate, you may note how a passage has been read in the Catholic tradition (e.g. a Church Father's interpretation, a Catechism theme, or its place in the Lectionary) alongside other readings, but never quote copyrighted texts verbatim -- describe teaching in your own words. Reply in EXACTLY this plain-text format, nothing else, no markdown, no headers other than the labels below:
+OVERVIEW: (3-4 sentences giving a substantive summary of the chapter's content, central theme, and why it matters in its broader biblical context)
 KEY POINTS:
-- (one sentence on a notable verse or moment)
-- (one sentence on a notable verse or moment)
-- (one sentence on a notable verse or moment)
-STRUCTURE: (1-2 sentences on how the chapter is organized)`;
-    const versesText = verses.slice(0,60).map(v=> `${v.verse}. ${v.text}`).join("\n").slice(0,3000);
+- (a specific, insightful observation about a notable verse or moment — name the verse number, not just "a verse")
+- (a specific, insightful observation about a notable verse or moment — name the verse number, not just "a verse")
+- (a specific, insightful observation about a notable verse or moment — name the verse number, not just "a verse")
+- (a specific, insightful observation about a notable verse or moment — name the verse number, not just "a verse")
+STRUCTURE: (2-3 sentences on how the chapter is organized — its literary shape, shifts in speaker/scene/argument, and how it fits with the chapters immediately before and after)
+Be precise and concrete rather than generic. Avoid vague filler like "this chapter teaches us many things." Ground every claim in the actual text provided.`;
+    const versesText = verses.map(v=> `${v.verse}. ${v.text}`).join("\n").slice(0,6000);
     const user=`${book[1]} chapter ${chapter}:\n${versesText}`;
-    const raw = await generateWithAI(system, user, 350);
+    const raw = await generateWithAI(system, user, 700);
     const parsed = parseLabeledSections(raw, ["OVERVIEW","KEY POINTS","STRUCTURE"]);
     if(parsed._fallback) return { overview: parsed._fallback, keyPoints: [], structure: "" };
-    const keyPoints = (parsed["KEY POINTS"]||"").split(/\n/).map(l=> l.replace(/^[-•*]\s*/,"").trim()).filter(Boolean).slice(0,6);
+    const keyPoints = (parsed["KEY POINTS"]||"").split(/\n/).map(l=> l.replace(/^[-•*]\s*/,"").trim()).filter(Boolean).slice(0,8);
     return { overview: parsed["OVERVIEW"] || "(no overview generated)", keyPoints, structure: parsed["STRUCTURE"] || "" };
   }
   async function renderVerseSummary(){
@@ -901,12 +959,13 @@ STRUCTURE: (1-2 sentences on how the chapter is organized)`;
     }
   }
   async function generateVerseMeaning(v){
-    const system=`You are a careful, denominationally neutral Bible study assistant. You will be given a single Bible verse. Reply in EXACTLY this plain-text format, nothing else, no markdown:
-MEANING: (1-2 sentences on what the verse means)
-CONTEXT: (1-2 sentences on how it fits within its surrounding passage)
-APPLICATION: (one practical reflection question or takeaway for the reader)`;
+    const system=`You are an expert, denominationally neutral Bible study assistant with deep knowledge of biblical history, original languages (Hebrew/Greek/Aramaic), cross-references, and the wider Christian theological tradition -- including Catholic teaching (the Catechism, Church Fathers, magisterial teaching, the saints) as well as other Christian traditions. You will be given a single Bible verse. Where relevant and accurate, you may note how the verse has been read in the Catholic tradition alongside other interpretations, but never quote copyrighted texts verbatim -- describe teaching in your own words. Reply in EXACTLY this plain-text format, nothing else, no markdown:
+MEANING: (2-3 sentences on what the verse means, including any noteworthy detail from the original language or historical setting if it meaningfully sharpens the meaning)
+CONTEXT: (2-3 sentences on how it fits within its surrounding passage and the book's larger argument or story)
+APPLICATION: (one specific, thought-provoking reflection question or practical takeaway — avoid generic advice like "trust God more"; make it concrete to what this verse actually says)
+Be precise and concrete. Avoid vague filler.`;
     const user=`Verse: ${v.bookName} ${v.chapter}:${v.verseNum}\nText: "${v.text}"`;
-    const raw = await generateWithAI(system, user, 280);
+    const raw = await generateWithAI(system, user, 420);
     const parsed = parseLabeledSections(raw, ["MEANING","CONTEXT","APPLICATION"]);
     if(parsed._fallback) return { meaning: parsed._fallback, context: "", application: "" };
     return { meaning: parsed.MEANING || "(no summary generated)", context: parsed.CONTEXT || "", application: parsed.APPLICATION || "" };
@@ -914,10 +973,15 @@ APPLICATION: (one practical reflection question or takeaway for the reader)`;
 
   function renderChat(){
     if(aiContent.querySelector("#aiChatLog")) return;
-    aiContent.innerHTML=`<div id="aiChatLog"></div><div class="ai-empty" id="chatEmpty"><p>Ask a question and get answers grounded in scripture with references.</p></div>`;
+    const memoryNote = chatSummary ? `<div class="chat-memory-note">Remembering earlier conversation <button id="clearChatMemBtn" title="Forget conversation history">Clear</button></div>` : (chatHistory.length ? `<div class="chat-memory-note">Continuing from your last session <button id="clearChatMemBtn" title="Forget conversation history">Clear</button></div>` : "");
+    aiContent.innerHTML=`${memoryNote}<div id="aiChatLog"></div><div class="ai-empty" id="chatEmpty"><p>Ask a question and get answers grounded in scripture with references.</p></div>`;
     const log=document.getElementById("aiChatLog");
     chatHistory.forEach(m=> addMsg(m.role, m.text, m.sources, false));
     if(chatHistory.length>0){ const e=document.getElementById("chatEmpty"); if(e) e.style.display="none"; }
+    const clearBtn=document.getElementById("clearChatMemBtn");
+    if(clearBtn) clearBtn.addEventListener("click", ()=>{
+      if(confirm("Forget this conversation? The assistant will start fresh next time.")){ clearChatMemory(); renderChat(); }
+    });
   }
   function addMsg(role, text, sources, save=true){
     const logEl=document.getElementById("aiChatLog"); if(!logEl){ renderChat(); }
@@ -927,8 +991,36 @@ APPLICATION: (one practical reflection question or takeaway for the reader)`;
     if(sources && sources.length){ html+= `<div class="sources">${sources.map(s=> `<div class="scripture-source"><div class="ref">${s.ref}</div><div class="text">${s.text}</div></div>`).join("")}</div>`; }
     div.innerHTML=html; log.appendChild(div); aiContent.scrollTop=aiContent.scrollHeight;
     const empty=document.getElementById("chatEmpty"); if(empty) empty.style.display="none";
-    if(save){ chatHistory.push({role, text, sources}); if(chatHistory.length>30) chatHistory.shift(); }
+    if(save){
+      chatHistory.push({role, text, sources, ts: Date.now()});
+      saveChatHistory(chatHistory);
+      // Once the raw transcript grows past a comfortable working window, fold
+      // the oldest turns into a running summary instead of just dropping them
+      // -- so long-running study conversations still keep their thread.
+      maybeCompressChatHistory();
+    }
     return div;
+  }
+  const CHAT_KEEP_RAW = 24; // most recent turns kept verbatim
+  let compressInFlight = false;
+  async function maybeCompressChatHistory(){
+    if(chatHistory.length <= CHAT_KEEP_RAW || compressInFlight) return;
+    compressInFlight = true;
+    try {
+      const toFold = chatHistory.slice(0, chatHistory.length - CHAT_KEEP_RAW);
+      const foldedText = toFold.map(m=> `${m.role==="user"?"User":"Assistant"}: ${stripHtml(m.text)}`).join("\n");
+      const system = `You maintain a running memory summary of an ongoing Bible-study conversation between a user and an AI study assistant. You will be given the existing summary (may be empty) plus a block of older chat turns that need to be folded in. Write an updated summary in plain prose, 4-8 sentences: capture what books/verses/topics the user has been studying, questions they've asked, and anything personal they've shared that would help the assistant respond well in future (their interests, concerns, denominational lean if stated, recurring themes). Do not include a preamble or labels -- reply with the summary text only.`;
+      const user = `Existing summary:\n${chatSummary || "(none yet)"}\n\nOlder turns to fold in:\n${foldedText}`;
+      const updated = await generateWithAI(system, user, 350);
+      chatSummary = updated.trim();
+      saveChatSummary(chatSummary);
+      chatHistory = chatHistory.slice(chatHistory.length - CHAT_KEEP_RAW);
+      saveChatHistory(chatHistory);
+    } catch(err){
+      console.warn("Chat memory compression failed, will retry later", err);
+    } finally {
+      compressInFlight = false;
+    }
   }
   aiChatForm.addEventListener("submit", async e=>{
     e.preventDefault(); const q=aiChatInput.value.trim(); if(!q) return;
@@ -950,13 +1042,25 @@ APPLICATION: (one practical reflection question or takeaway for the reader)`;
   });
   async function answerWithScripture(question){
     const p=panes.a; const book=BOOKS[p.bookIdx]; const key=p.version+"/"+book[0]+"/"+p.chapter; const currentVerses=cache[key]||[];
-    const currentText = currentVerses.map(v=> `${book[1]} ${p.chapter}:${v.verse} — ${v.text}`).join("\n").slice(0,2000);
-    const system=`You are a warm, denominationally neutral Bible study assistant embedded in a Bible-reading app. Answer the user's question in 2-4 plain-spoken sentences. You may reference the chapter the user is currently reading if it's relevant. Reply with the answer only, no preamble, no markdown.`;
-    const user=`Currently reading — ${book[1]} ${p.chapter}:\n${currentText || "(not loaded yet)"}\n\nQuestion: ${question}`;
-    const text = await generateWithAI(system, user, 260);
+    const currentText = currentVerses.map(v=> `${book[1]} ${p.chapter}:${v.verse} — ${v.text}`).join("\n").slice(0,4000);
+    let liturgyLine = "";
+    try {
+      const day = await fetchLiturgicalToday();
+      const lead = primaryCelebration(day);
+      liturgyLine = `\nToday in the Roman Catholic liturgical calendar: ${day.season} season${day.season_week?`, week ${day.season_week}`:""}${lead.title?`, celebrating ${lead.title} (${lead.rank})`:""}. Mention this only if it is actually relevant to the question.`;
+    } catch(err){ /* liturgical calendar is optional context; ignore failures silently */ }
+    const system=`You are an expert, warm, denominationally neutral Bible study assistant embedded in a Bible-reading app, with deep knowledge of biblical history, theology, literary context, original languages, and the Catholic theological tradition (the Catechism of the Catholic Church, Church Fathers, magisterial teaching, the saints, and the Roman Catholic liturgical calendar/Lectionary) as well as other Christian traditions. Answer the user's question thoughtfully and specifically — 3-6 plain-spoken sentences, more if the question genuinely needs it. Reference specific verses, people, places, saints, or original-language nuance when it strengthens the answer. If the user's question concerns Catholic teaching, doctrine, saints, or the liturgical calendar specifically, draw on that tradition explicitly and accurately, in your own words (never quote the Catechism or other copyrighted texts verbatim). You may reference the chapter the user is currently reading, today's liturgical calendar if relevant, and earlier turns in this conversation to answer follow-up questions naturally. Avoid vague, generic spiritual platitudes — be substantive and precise. Reply with the answer only, no preamble like "Great question," no markdown.`;
+    // Include the rolling summary of older conversation (if any) plus recent
+    // turns verbatim, so the assistant has real continuity across a long
+    // conversation instead of only ever seeing the last few messages.
+    const recentHistory = chatHistory.slice(-14).map(m=> `${m.role==="user"?"User":"Assistant"}: ${stripHtml(m.text)}`).join("\n");
+    const memoryBlock = chatSummary ? `\nWhat you remember about this ongoing conversation with the user:\n${chatSummary}\n` : "";
+    const user=`Currently reading — ${book[1]} ${p.chapter}:\n${currentText || "(not loaded yet)"}${liturgyLine}${memoryBlock}${recentHistory ? `\nRecent conversation:\n${recentHistory}\n` : ""}\nQuestion: ${question}`;
+    const text = await generateWithAI(system, user, 500);
     const sources = await findRelatedVerses(question, currentVerses, book, p.chapter, p.version);
     return {text: text.trim(), sources};
   }
+  function stripHtml(html){ const d=document.createElement("div"); d.innerHTML=html; return d.textContent||""; }
   // Finds candidate cross-references by keyword match against the topic index
   // and the currently-open chapter, then fetches the REAL verse text for each
   // live from bible-api.com, in the reader's current translation. This is
@@ -980,6 +1084,72 @@ APPLICATION: (one practical reflection question or takeaway for the reader)`;
     }));
     const validTopicResults = topicResults.filter(Boolean);
     return [...validTopicResults, ...curScored.map(v=>({ref:v.ref, text:v.text}))].slice(0,3);
+  }
+
+  // --- Roman Catholic liturgical calendar (calendarium-romanum / Church Calendar API) ---
+  // Read-only JSON API, no key required: http://calapi.inadiutorium.cz/api-doc
+  let liturgicalCache = null, liturgicalReflectionReq = 0;
+  async function fetchLiturgicalToday(){
+    if(liturgicalCache && liturgicalCache._fetchedAt && (Date.now()-liturgicalCache._fetchedAt) < 6*3600*1000) return liturgicalCache;
+    const response = await fetchWithTimeout("https://calapi.inadiutorium.cz/api/v0/en/calendars/general-en/today", {}, 10000);
+    if(!response.ok) throw new Error("liturgy-api-"+response.status);
+    const data = await response.json();
+    data._fetchedAt = Date.now();
+    liturgicalCache = data;
+    return data;
+  }
+  function colorClass(c){ return (c||"green").toLowerCase(); }
+  function primaryCelebration(day){
+    if(!day.celebrations || !day.celebrations.length) return {title:"", colour:"green", rank:"ferial"};
+    // celebrations are already ordered by rank_num ascending (lowest = highest priority)
+    return [...day.celebrations].sort((a,b)=> (a.rank_num||99)-(b.rank_num||99))[0];
+  }
+  async function renderLiturgicalToday(){
+    aiContent.innerHTML = `<div class="ai-card" id="liturgyDayCard"><h3>Today in the Church</h3>${skeletonHtml([60,40])}</div>
+      <div class="ai-card" id="liturgyReflectionCard"><h3>Reflection</h3>${skeletonHtml([90,85,60])}</div>`;
+    const reqToken = ++liturgicalReflectionReq;
+    let day;
+    try {
+      day = await fetchLiturgicalToday();
+      if(reqToken!==liturgicalReflectionReq) return;
+    } catch(err){
+      if(reqToken!==liturgicalReflectionReq) return;
+      const dc=document.getElementById("liturgyDayCard");
+      if(dc) dc.innerHTML=`<h3>Today in the Church</h3><p style="color:var(--ink-faint);font-size:13px">Couldn't reach the liturgical calendar service right now.</p><button class="ai-action-btn" id="retryLiturgy" style="margin-top:8px">Try Again</button>`;
+      const rc=document.getElementById("liturgyReflectionCard"); if(rc) rc.remove();
+      const retryBtn=document.getElementById("retryLiturgy"); if(retryBtn) retryBtn.addEventListener("click", ()=> renderLiturgicalToday());
+      return;
+    }
+    const lead = primaryCelebration(day);
+    const dateObj = new Date(day.date+"T00:00:00");
+    const dateLabel = dateObj.toLocaleDateString(undefined, {weekday:"long", year:"numeric", month:"long", day:"numeric"});
+    const seasonLabel = day.season ? (day.season.charAt(0).toUpperCase()+day.season.slice(1)) + (day.season_week ? `, week ${day.season_week}` : "") : "";
+    const others = day.celebrations && day.celebrations.length>1 ? day.celebrations.slice(1).filter(c=>c.title).map(c=> `<div class="liturgy-rank">Also: ${c.title} (${c.rank})</div>`).join("") : "";
+    const dc=document.getElementById("liturgyDayCard");
+    if(dc) dc.innerHTML = `<h3>Today in the Church</h3>
+      <div class="liturgy-head"><span class="liturgy-color-dot ${colorClass(lead.colour)}"></span><div><div class="liturgy-date">${dateLabel}</div><div class="liturgy-season">${seasonLabel}</div></div></div>
+      <div class="liturgy-feast-title">${lead.title || "Ordinary Weekday"}</div>
+      <div class="liturgy-rank">${lead.rank ? lead.rank.charAt(0).toUpperCase()+lead.rank.slice(1) : ""} · ${(lead.colour||"green")} vestments</div>
+      ${others}
+      <p style="margin-top:10px;font-size:11px;color:var(--ink-faint)">Roman Catholic calendar data via calendarium-romanum / Church Calendar API.</p>`;
+    try {
+      const reflection = await generateLiturgicalReflection(day, lead);
+      if(reqToken!==liturgicalReflectionReq) return;
+      const rc=document.getElementById("liturgyReflectionCard");
+      if(rc) rc.innerHTML = `<h3>Reflection</h3><p>${reflection}</p>`;
+    } catch(err){
+      if(reqToken!==liturgicalReflectionReq) return;
+      console.error(err);
+      const rc=document.getElementById("liturgyReflectionCard");
+      if(rc) rc.innerHTML = `<h3>Reflection</h3><p style="color:var(--ink-faint);font-size:13px">${aiErrorMessage(err)}</p><button class="ai-action-btn" id="retryLiturgyReflection" style="margin-top:8px">Try Again</button>`;
+      const retryBtn=document.getElementById("retryLiturgyReflection"); if(retryBtn) retryBtn.addEventListener("click", ()=> renderLiturgicalToday());
+    }
+  }
+  async function generateLiturgicalReflection(day, lead){
+    const system=`You are an expert Catholic theological assistant with deep knowledge of the Roman Catholic liturgical tradition, the Catechism of the Catholic Church, the Church Fathers, magisterial teaching, the lives of the saints, and the Lectionary. You will be given today's entry from the official Roman Catholic liturgical calendar. Write a single warm, substantive paragraph (4-6 sentences) reflecting on today's liturgical season and celebration: explain its theological significance, note anything notable about the saint or feast if one is given (their life, why the Church honors them, what virtue or mystery the day highlights), and connect it to the liturgical season's broader movement (Advent/Christmas/Lent/Easter/Ordinary Time). Do not quote the Catechism or any copyrighted text verbatim -- describe its teaching in your own words. Reply with the paragraph only, no markdown, no preamble.`;
+    const user=`Date: ${day.date}\nLiturgical season: ${day.season}, week ${day.season_week}\nWeekday: ${day.weekday}\nCelebration: ${lead.title || "(no named feast — ordinary weekday)"}\nRank: ${lead.rank}\nLiturgical colour: ${lead.colour}`;
+    const text = await generateWithAI(system, user, 350);
+    return text.trim();
   }
 
   function renderMarks(){
