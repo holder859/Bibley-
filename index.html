@@ -18,6 +18,7 @@
     --gold-soft: #e8d9a8;
     --border: #c9a86733;
     --panel-border: #2a3658;
+    --verse-size: 19px;
   }
   * { box-sizing: border-box; }
   html, body { margin:0; padding:0; height:100%; background:var(--bg); color:var(--ink); font-family:'Source Serif 4', Georgia, serif; overflow:hidden; }
@@ -38,6 +39,11 @@
     display:flex; align-items:center; gap:6px; background:none; border:1px solid var(--border); color:var(--gold);
     padding:6px 11px; border-radius:8px; font-family:'Fraunces'; font-size:13px; cursor:pointer; transition:.2s;
   }
+  .tts-btn { background:none; border:1px solid var(--border); color:var(--gold); border-radius:6px; padding:3px 8px; cursor:pointer; font-size:13px; transition:.2s; flex-shrink:0; }
+  .tts-btn:hover { border-color:#c9a86777; }
+  .tts-btn.active { background:var(--gold); color:var(--bg); animation:tts-pulse 1.4s ease-in-out infinite; }
+  @keyframes tts-pulse { 0%,100%{opacity:1;} 50%{opacity:.65;} }
+  .verses-text span.tts-current { background:#c9a86733; box-shadow:inset 0 0 0 1px var(--gold); }
   #openNavBtn:hover, #compareBtn:hover, #openAiBtn:hover, #bookmarkBtn:hover, #fullscreenBtn:hover { border-color:#c9a86777; color:var(--gold-soft); }
   #openAiBtn { background:#1d2744; border-color:#2f3d66; }
   #openAiBtn.active { background:var(--gold); color:var(--bg); border-color:var(--gold); }
@@ -66,6 +72,23 @@
   #bookmarkList { padding:0 16px 12px; border-bottom:1px solid var(--border); flex-shrink:0; max-height:140px; overflow-y:auto; display:none; }
   #bookmarkList.has-items { display:block; }
   #bookmarkList h4 { font-family:'Fraunces'; font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--gold); margin:10px 0 6px; }
+  #ssScopeRow { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:6px 2px 0; }
+  #ssScopeLabel { font-size:10.5px; color:var(--ink-faint); }
+  #ssWholeBibleBtn { background:none; border:1px solid var(--border); color:var(--gold); border-radius:6px; padding:4px 9px; font-size:11px; cursor:pointer; font-family:'Fraunces'; flex-shrink:0; white-space:nowrap; }
+  #ssWholeBibleBtn:hover { border-color:#c9a86777; }
+  #ssWholeBibleBtn:disabled { opacity:.6; cursor:default; }
+  .ss-progress-wrap { padding:8px 2px 2px; }
+  .ss-progress-bar { height:4px; background:var(--panel-border); border-radius:2px; overflow:hidden; }
+  .ss-progress-fill { height:100%; background:var(--gold); transition:width .2s; }
+  .ss-progress-text { font-size:10.5px; color:var(--ink-faint); margin-top:4px; }
+  #scriptureSearchResults { padding:0 16px 10px; border-bottom:1px solid var(--border); flex-shrink:0; max-height:220px; overflow-y:auto; display:none; }
+  #scriptureSearchResults.has-items { display:block; }
+  #scriptureSearchResults .ss-note { font-size:11px; color:var(--ink-faint); padding:6px 0; line-height:1.5; }
+  #scriptureSearchResults .ss-item { padding:7px 8px; border-radius:6px; background:#1a2440; border:1px solid var(--panel-border); margin-bottom:6px; cursor:pointer; }
+  #scriptureSearchResults .ss-item:hover { border-color:var(--gold); }
+  #scriptureSearchResults .ss-ref { font-family:'Fraunces'; font-size:12px; color:var(--gold); margin-bottom:2px; }
+  #scriptureSearchResults .ss-text { font-size:12.5px; color:var(--ink-dim); line-height:1.4; }
+  #scriptureSearchResults .ss-text mark { background:#c9a86755; color:var(--ink); border-radius:2px; }
   .bm-item, .hl-item-drawer { display:flex; justify-content:space-between; align-items:center; padding:6px 8px; border-radius:6px; background:#1a2440; border:1px solid var(--panel-border); margin-bottom:6px; cursor:pointer; }
   .bm-item:hover { border-color:var(--gold); }
   .bm-item span, .hl-item-drawer span { font-size:13px; color:var(--ink); }
@@ -114,7 +137,7 @@
   .chapter-heading .right button { background:none; border:1px solid var(--border); color:var(--gold); padding:6px 10px; border-radius:8px; font-family:'Fraunces'; font-size:12px; cursor:pointer; }
   .chapter-heading .right button.active { background:var(--gold); color:var(--bg); }
 
-  .verses-text { font-size:19px; line-height:1.78; }
+  .verses-text { font-size:var(--verse-size); line-height:1.78; }
   .verses-text span { cursor:pointer; border-radius:4px; padding:1px 3px; transition:all .15s; position:relative; }
   .verses-text span:hover { background:#c9a86711; }
   .verses-text span.selected { background:#c9a86722; box-shadow:inset 0 0 0 1px #c9a86744; }
@@ -145,6 +168,13 @@
   .model-badge.loading::before { content:"● "; color:var(--gold); }
   .model-badge.error::before { content:"● "; color:#e08a8a; }
   #closeAiBtn { background:none; border:none; color:var(--ink-dim); cursor:pointer; padding:6px; }
+  .ai-mode-toggle { display:flex; flex-wrap:wrap; gap:4px; padding:10px 12px 0; flex-shrink:0; }
+  .mode-btn { flex:1 1 calc(50% - 4px); min-width:90px; padding:7px 8px; border-radius:8px; border:1px solid var(--panel-border); background:var(--bg); color:var(--ink-dim); font-family:'Fraunces'; font-size:12px; cursor:pointer; transition:.2s; }
+  .mode-btn:hover { border-color:#c9a86777; color:var(--ink); }
+  .mode-btn.active { background:var(--gold); color:var(--bg-header); border-color:var(--gold); font-weight:600; }
+  .mode-btn[data-mode="strict"].active { background:#7d9d6b; border-color:#7d9d6b; }
+  .mode-btn[data-mode="cross"].active { background:#9b5a5a; border-color:#9b5a5a; }
+  .mode-btn[data-mode="conversational"].active { background:#5a7d9d; border-color:#5a7d9d; }
   .ai-tabs { display:flex; gap:4px; padding:10px 12px; border-bottom:1px solid var(--panel-border); flex-shrink:0; overflow-x:auto; }
   .ai-tab { flex:1; min-width:70px; padding:8px 6px; border-radius:8px; border:1px solid transparent; background:transparent; color:var(--ink-dim); font-family:'Fraunces'; font-size:11.5px; cursor:pointer; transition:.2s; white-space:nowrap; }
   .ai-tab.active { background:#1e2a4a; border-color:#2f3d66; color:var(--gold-soft); }
@@ -167,6 +197,29 @@
   .bullet .num { width:22px; height:22px; border-radius:50%; background:#c9a86722; border:1px solid #c9a86733; display:grid; place-items:center; font-size:11px; color:var(--gold); flex-shrink:0; font-family:'Fraunces'; }
   .bullet p { font-size:14px; line-height:1.55; }
 
+  /* Sermon/lesson outline builder */
+  .outline-controls { display:flex; flex-direction:column; gap:10px; }
+  .outline-field-label { font-size:10.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-faint); margin-bottom:5px; }
+  .outline-chip-row { display:flex; gap:6px; flex-wrap:wrap; }
+  .outline-chip { padding:6px 11px; border-radius:20px; border:1px solid var(--border); background:none; color:var(--ink-dim); font-family:'Source Serif 4'; font-size:12.5px; cursor:pointer; transition:.2s; }
+  .outline-chip:hover { border-color:#c9a86777; color:var(--ink); }
+  .outline-chip.active { background:var(--gold); color:var(--bg-header); border-color:var(--gold); font-weight:600; }
+  .outline-length-row { display:flex; gap:6px; }
+  .outline-generate-btn { width:100%; padding:11px; border-radius:10px; border:none; background:var(--gold); color:var(--bg-header); font-family:'Fraunces'; font-weight:600; font-size:13.5px; cursor:pointer; margin-top:2px; }
+  .outline-generate-btn:hover { filter:brightness(1.06); }
+  .outline-generate-btn:disabled { opacity:.55; cursor:default; }
+  .outline-title-card h3 { font-size:16px; text-transform:none; letter-spacing:0; font-family:'Fraunces'; color:var(--gold-soft); }
+  .outline-meta { font-size:11.5px; color:var(--ink-faint); margin-top:2px; }
+  .outline-point { padding:6px 0; }
+  .outline-point .sub-num { font-family:'Fraunces'; font-size:12px; color:var(--gold); margin-right:6px; }
+  .outline-subpoints { margin:6px 0 4px 20px; display:flex; flex-direction:column; gap:5px; }
+  .outline-subpoints .sub-item { font-size:13px; color:var(--ink-dim); line-height:1.5; padding-left:10px; border-left:2px solid #c9a86733; }
+  .outline-illustration { margin-top:8px; padding:9px 10px; background:#141e36; border:1px solid #2a3658; border-radius:8px; font-size:12.5px; color:var(--ink-dim); line-height:1.5; }
+  .outline-illustration b { color:var(--gold); font-weight:600; }
+  .outline-actions { display:flex; gap:8px; margin-top:4px; }
+  .outline-actions button { flex:1; }
+  #outlineCopyBtn.copied { background:#7d9d6b; color:#0d1426; border-color:#7d9d6b; }
+
   .hl-controls { display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
   .hl-btn { width:32px; height:32px; border-radius:8px; border:2px solid transparent; cursor:pointer; display:grid; place-items:center; transition:.2s; }
   .hl-btn.yellow { background:#fde68a; } .hl-btn.green { background:#a7f3d0; } .hl-btn.blue { background:#bfdbfe; } .hl-btn.pink { background:#fbcfe8; }
@@ -186,6 +239,28 @@
   .chat-memory-note { display:flex; align-items:center; justify-content:space-between; gap:8px; font-size:11px; color:var(--ink-faint); background:#1a2440; border:1px solid var(--panel-border); border-radius:8px; padding:6px 10px; margin-bottom:10px; }
   .chat-memory-note button { background:none; border:1px solid var(--border); color:var(--ink-dim); font-size:11px; padding:2px 8px; border-radius:6px; cursor:pointer; font-family:'Source Serif 4'; }
   .chat-memory-note button:hover { color:var(--gold); border-color:#c9a86777; }
+
+  /* Conversation switcher (Chatbot tab) */
+  .convo-bar { display:flex; align-items:center; gap:6px; margin-bottom:10px; }
+  .convo-select-wrap { position:relative; flex:1; min-width:0; }
+  #convoSelectBtn { width:100%; display:flex; align-items:center; justify-content:space-between; gap:6px; background:#1a2440; border:1px solid var(--panel-border); color:var(--ink); padding:8px 10px; border-radius:8px; font-family:'Fraunces'; font-size:13px; cursor:pointer; text-align:left; }
+  #convoSelectBtn:hover { border-color:#c9a86777; }
+  #convoSelectBtn .convo-name { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  #convoSelectBtn .caret { color:var(--ink-faint); flex-shrink:0; font-size:10px; }
+  .convo-dropdown { display:none; position:absolute; top:calc(100% + 4px); left:0; right:0; background:var(--bg-header); border:1px solid var(--panel-border); border-radius:10px; box-shadow:0 12px 30px rgba(0,0,0,.45); z-index:20; max-height:260px; overflow-y:auto; }
+  .convo-dropdown.open { display:block; }
+  .convo-item { display:flex; align-items:center; justify-content:space-between; gap:8px; padding:9px 10px; cursor:pointer; border-bottom:1px solid var(--panel-border); }
+  .convo-item:last-child { border-bottom:none; }
+  .convo-item:hover { background:#c9a86711; }
+  .convo-item.active { background:#c9a86722; }
+  .convo-item .convo-item-name { font-size:13px; color:var(--ink); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .convo-item .convo-item-meta { font-size:10.5px; color:var(--ink-faint); margin-top:2px; }
+  .convo-item .convo-item-actions { display:flex; gap:4px; flex-shrink:0; }
+  .convo-item .convo-item-actions button { background:none; border:1px solid var(--border); color:var(--ink-faint); border-radius:5px; padding:2px 6px; font-size:10.5px; cursor:pointer; font-family:'Source Serif 4'; }
+  .convo-item .convo-item-actions button:hover { color:var(--gold); border-color:#c9a86777; }
+  #convoNewBtn { flex-shrink:0; background:var(--gold); color:var(--bg-header); border:none; border-radius:8px; padding:8px 12px; font-family:'Fraunces'; font-weight:600; font-size:13px; cursor:pointer; }
+  #convoNewBtn:hover { filter:brightness(1.06); }
+  .convo-rename-input { width:100%; background:var(--bg); border:1px solid var(--gold); border-radius:6px; padding:5px 7px; font-size:13px; color:var(--ink); font-family:'Source Serif 4'; }
   .thinking-dots { display:inline-flex; align-items:center; gap:3px; color:var(--ink-dim); font-style:italic; }
   .thinking-dots i { width:4px; height:4px; border-radius:50%; background:var(--gold); display:inline-block; animation:tdot 1.1s infinite ease-in-out; }
   .thinking-dots i:nth-child(2){ animation-delay:.15s; } .thinking-dots i:nth-child(3){ animation-delay:.3s; }
@@ -232,6 +307,14 @@
     <nav id="drawer">
       <div class="drawer-head"><div class="title">The Books<small>66 books</small></div><button id="closeNavBtn">Close</button></div>
       <div class="search-wrap"><input id="bookSearch" placeholder="Search books" /></div>
+      <div class="search-wrap" style="padding-top:0">
+        <input id="scriptureSearch" placeholder="Search verse text..." />
+        <div id="ssScopeRow">
+          <span id="ssScopeLabel">Searching chapters you've viewed</span>
+          <button id="ssWholeBibleBtn" type="button">Search whole Bible</button>
+        </div>
+      </div>
+      <div id="scriptureSearchResults"></div>
       <div id="bookmarkList"></div>
       <div id="bookList"></div>
       <div class="chapter-picker"><div style="font-size:11px; letter-spacing:.15em; text-transform:uppercase; color:#c9a86799; margin-bottom:8px; font-family:Fraunces">Chapters</div><div id="chapterGrid" class="chapter-grid"></div></div>
@@ -242,6 +325,7 @@
         <div class="pane-toolbar">
           <button class="pane-ref-btn font-display" data-pane="a">Genesis 1</button>
           <span style="font-size:11px;color:var(--ink-dim)" class="pane-version-label" data-pane="a">WEB</span>
+          <button class="tts-btn" data-pane="a" title="Read this chapter aloud">🔊</button>
           <div class="ref-picker" data-pane="a">
             <div class="rp-search"><input type="text" class="rp-search-input" placeholder="Search books" /></div>
             <div class="rp-books"></div>
@@ -255,6 +339,7 @@
         <div class="pane-toolbar">
           <button class="pane-ref-btn font-display" data-pane="b">Genesis 1</button>
           <select id="versionSelectB" style="background:transparent;color:var(--ink-dim);border:1px solid var(--border);border-radius:6px;padding:3px 8px;font-family:'Source Serif 4';font-size:11px;"></select>
+          <button class="tts-btn" data-pane="b" title="Read this chapter aloud">🔊</button>
           <div class="ref-picker" data-pane="b">
             <div class="rp-search"><input type="text" class="rp-search-input" placeholder="Search books" /></div>
             <div class="rp-books"></div>
@@ -268,10 +353,17 @@
 
     <aside id="aiPanel">
       <div class="ai-head"><h2><span>Study</span> Assistant<div class="model-badge ready">Free AI — no signup, no key</div></h2><button id="closeAiBtn">Close</button></div>
+      <div class="ai-mode-toggle" role="radiogroup" aria-label="Assistant mode">
+        <button class="mode-btn active" data-mode="scholar" title="Broader study help: history, cross-references, original languages, wider Christian tradition">Scholar</button>
+        <button class="mode-btn" data-mode="strict" title="Answers only from scripture text itself. No interpretive leaps, no reframing around what scripture says.">Scripture Only</button>
+        <button class="mode-btn" data-mode="cross" title="Grounded in scripture, and every answer is tied back to the cross — what Jesus's death and resurrection mean for the passage or question.">Cross-Centered</button>
+        <button class="mode-btn" data-mode="conversational" title="Casual, back-and-forth tone, like talking with a knowledgeable friend — still grounded in scripture, just shorter and less formal.">Conversational</button>
+      </div>
       <div class="ai-tabs">
         <button class="ai-tab active" data-tab="chapter">Chapter</button>
         <button class="ai-tab" data-tab="verse">Verse</button>
-        <button class="ai-tab" data-tab="today">Today</button>
+        <button class="ai-tab" data-tab="outline">Outline</button>
+        <button class="ai-tab" data-tab="compare" id="compareTabBtn" style="display:none">Compare</button>
         <button class="ai-tab" data-tab="chat">Chatbot</button>
         <button class="ai-tab" data-tab="marks">Marks</button>
       </div>
@@ -279,10 +371,151 @@
       <form id="aiChatForm" style="display:none"><input id="aiChatInput" placeholder="Ask grounded in scripture..." autocomplete="off"/><button id="aiChatSend" type="submit">Send</button></form>
     </aside>
   </div>
+
 </div>
 
 <script>
 (() => {
+  // --- IndexedDB: multiple named Bible-study conversations -----------------
+  // Chat used to be a single localStorage blob (one conversation, forever).
+  // This replaces that with IndexedDB so the user can keep several separate
+  // conversations (e.g. "Romans study", "Youth group prep") side by side,
+  // switch between them, rename or delete them, without them overwriting
+  // each other. IndexedDB is used (rather than more localStorage keys)
+  // because it comfortably holds many conversations' worth of transcript
+  // without the ~5MB localStorage ceiling, and gives real indexed lookup
+  // by conversation id.
+  const DB_NAME = "bible_reader_db";
+  const DB_VERSION = 1;
+  const STORE_CONVOS = "conversations"; // {id, title, summary, createdAt, updatedAt}
+  const STORE_MESSAGES = "messages";    // {id (auto), convoId, role, text, sources, ts}
+  let dbPromise = null;
+  function openDb(){
+    if(dbPromise) return dbPromise;
+    dbPromise = new Promise((resolve, reject)=>{
+      if(!window.indexedDB){ reject(new Error("no-indexeddb")); return; }
+      const req = indexedDB.open(DB_NAME, DB_VERSION);
+      req.onupgradeneeded = (e)=>{
+        const db = e.target.result;
+        if(!db.objectStoreNames.contains(STORE_CONVOS)){
+          const s = db.createObjectStore(STORE_CONVOS, { keyPath: "id" });
+          s.createIndex("updatedAt", "updatedAt");
+        }
+        if(!db.objectStoreNames.contains(STORE_MESSAGES)){
+          const m = db.createObjectStore(STORE_MESSAGES, { keyPath: "id", autoIncrement: true });
+          m.createIndex("convoId", "convoId");
+        }
+      };
+      req.onsuccess = ()=> resolve(req.result);
+      req.onerror = ()=> reject(req.error || new Error("indexeddb-open-failed"));
+    });
+    return dbPromise;
+  }
+  function tx(storeNames, mode){
+    return openDb().then(db=> db.transaction(storeNames, mode));
+  }
+  function reqToPromise(req){
+    return new Promise((resolve, reject)=>{ req.onsuccess=()=> resolve(req.result); req.onerror=()=> reject(req.error); });
+  }
+  const ChatDB = {
+    async listConversations(){
+      const t = await tx([STORE_CONVOS], "readonly");
+      const all = await reqToPromise(t.objectStore(STORE_CONVOS).getAll());
+      return all.sort((a,b)=> b.updatedAt - a.updatedAt);
+    },
+    async getConversation(id){
+      const t = await tx([STORE_CONVOS], "readonly");
+      return reqToPromise(t.objectStore(STORE_CONVOS).get(id));
+    },
+    async createConversation(title){
+      const id = "c_"+Date.now()+"_"+Math.random().toString(36).slice(2,8);
+      const now = Date.now();
+      const convo = { id, title: title || "New conversation", summary: "", createdAt: now, updatedAt: now };
+      const t = await tx([STORE_CONVOS], "readwrite");
+      await reqToPromise(t.objectStore(STORE_CONVOS).add(convo));
+      return convo;
+    },
+    async renameConversation(id, title){
+      const t = await tx([STORE_CONVOS], "readwrite");
+      const store = t.objectStore(STORE_CONVOS);
+      const convo = await reqToPromise(store.get(id));
+      if(!convo) return null;
+      convo.title = title; convo.updatedAt = Date.now();
+      await reqToPromise(store.put(convo));
+      return convo;
+    },
+    async touchConversation(id){
+      const t = await tx([STORE_CONVOS], "readwrite");
+      const store = t.objectStore(STORE_CONVOS);
+      const convo = await reqToPromise(store.get(id));
+      if(!convo) return;
+      convo.updatedAt = Date.now();
+      await reqToPromise(store.put(convo));
+    },
+    async saveSummary(id, summary){
+      const t = await tx([STORE_CONVOS], "readwrite");
+      const store = t.objectStore(STORE_CONVOS);
+      const convo = await reqToPromise(store.get(id));
+      if(!convo) return;
+      convo.summary = summary; convo.updatedAt = Date.now();
+      await reqToPromise(store.put(convo));
+    },
+    async deleteConversation(id){
+      const t = await tx([STORE_CONVOS, STORE_MESSAGES], "readwrite");
+      t.objectStore(STORE_CONVOS).delete(id);
+      const msgStore = t.objectStore(STORE_MESSAGES);
+      const idx = msgStore.index("convoId");
+      const keysReq = idx.getAllKeys(IDBKeyRange.only(id));
+      const keys = await reqToPromise(keysReq);
+      keys.forEach(k=> msgStore.delete(k));
+    },
+    async getMessages(convoId){
+      const t = await tx([STORE_MESSAGES], "readonly");
+      const idx = t.objectStore(STORE_MESSAGES).index("convoId");
+      const all = await reqToPromise(idx.getAll(IDBKeyRange.only(convoId)));
+      return all.sort((a,b)=> a.ts - b.ts);
+    },
+    async addMessage(convoId, role, text, sources){
+      const msg = { convoId, role, text, sources: sources||null, ts: Date.now() };
+      const t = await tx([STORE_MESSAGES], "readwrite");
+      const id = await reqToPromise(t.objectStore(STORE_MESSAGES).add(msg));
+      await ChatDB.touchConversation(convoId);
+      return { ...msg, id };
+    },
+    async replaceOldMessagesWithSummary(convoId, keepFromTs){
+      // Deletes every message in this conversation older than keepFromTs.
+      // Used after folding old turns into the running summary, same idea as
+      // the old localStorage compression step.
+      const t = await tx([STORE_MESSAGES], "readwrite");
+      const idx = t.objectStore(STORE_MESSAGES).index("convoId");
+      const all = await reqToPromise(idx.getAll(IDBKeyRange.only(convoId)));
+      all.filter(m=> m.ts < keepFromTs).forEach(m=> t.objectStore(STORE_MESSAGES).delete(m.id));
+    },
+    async migrateFromLocalStorageIfNeeded(){
+      // One-time migration: the app used to keep a single conversation in
+      // localStorage (bible_chat_history_v1 / bible_chat_summary_v1). If
+      // that data exists and IndexedDB has no conversations yet, bring it
+      // over as the first conversation so nobody's existing chat vanishes.
+      try {
+        const existing = await ChatDB.listConversations();
+        if(existing.length) return null;
+        const rawHistory = localStorage.getItem("bible_chat_history_v1");
+        const rawSummary = localStorage.getItem("bible_chat_summary_v1");
+        if(!rawHistory && !rawSummary) return null;
+        const history = rawHistory ? JSON.parse(rawHistory) : [];
+        const convo = await ChatDB.createConversation("Imported conversation");
+        if(rawSummary) await ChatDB.saveSummary(convo.id, rawSummary);
+        for(const m of history){ await ChatDB.addMessage(convo.id, m.role, m.text, m.sources); }
+        localStorage.removeItem("bible_chat_history_v1");
+        localStorage.removeItem("bible_chat_summary_v1");
+        return convo;
+      } catch(err){
+        console.warn("Chat migration from localStorage skipped", err);
+        return null;
+      }
+    }
+  };
+
   const BOOKS = [
     ["Genesis","Genesis",50,"law","Beginnings and covenant"],["Exodus","Exodus",40,"law","Deliverance and law"],["Leviticus","Leviticus",27,"law","Holiness"],["Numbers","Numbers",36,"law","Wandering"],["Deuteronomy","Deuteronomy",34,"law","Covenant renewal"],
     ["Joshua","Joshua",24,"history","Conquest"],["Judges","Judges",21,"history","Deliverers"],["Ruth","Ruth",4,"history","Redemption"],["1 Samuel","1 Samuel",31,"history","Kingship"],["2 Samuel","2 Samuel",24,"history","David"],["1 Kings","1 Kings",22,"history","Divided kingdom"],["2 Kings","2 Kings",25,"history","Exile"],["1 Chronicles","1 Chronicles",29,"history","Retelling"],["2 Chronicles","2 Chronicles",36,"history","Temple"],["Ezra","Ezra",10,"history","Return"],["Nehemiah","Nehemiah",13,"history","Restoration"],["Esther","Esther",10,"history","Providence"],
@@ -372,8 +605,7 @@
 
   const STORAGE_HL = "bible_highlights_v2";
   const STORAGE_BM = "bible_bookmarks_v2";
-  const STORAGE_CHAT = "bible_chat_history_v1";
-  const STORAGE_CHAT_SUMMARY = "bible_chat_summary_v1";
+  const STORAGE_SEARCH_INDEX = "bible_search_index_v1";
 
   function getHighlights(){
     try { return JSON.parse(localStorage.getItem(STORAGE_HL) || "{}"); } catch { return {}; }
@@ -397,29 +629,242 @@
     if(idx>=0){ bms.splice(idx,1); } else { bms.push({bookIdx, chapter, bookName: BOOKS[bookIdx][1], added: Date.now()}); }
     saveBookmarks(bms); return bms;
   }
-  // Chat memory is persisted across reloads/sessions, not just kept in a
-  // page-lifetime array, so the assistant actually "remembers" past study
-  // conversations rather than starting blank every time the app is opened.
-  function loadChatHistory(){
-    try { return JSON.parse(localStorage.getItem(STORAGE_CHAT) || "[]"); } catch { return []; }
-  }
-  function saveChatHistory(arr){
-    try { localStorage.setItem(STORAGE_CHAT, JSON.stringify(arr)); } catch(err){ console.warn("Couldn't persist chat history", err); }
-  }
-  function loadChatSummary(){
-    try { return localStorage.getItem(STORAGE_CHAT_SUMMARY) || ""; } catch { return ""; }
-  }
-  function saveChatSummary(text){
-    try { localStorage.setItem(STORAGE_CHAT_SUMMARY, text || ""); } catch(err){ console.warn("Couldn't persist chat summary", err); }
-  }
-  function clearChatMemory(){
-    chatHistory = []; chatSummary = "";
-    localStorage.removeItem(STORAGE_CHAT); localStorage.removeItem(STORAGE_CHAT_SUMMARY);
-  }
 
   const panes = { a:{bookIdx:0, chapter:1, version:"web", requestId:0}, b:{bookIdx:0, chapter:1, version:"kjv", requestId:0} };
   let compareMode=false, cache={}, selectedVerse=null, currentTab="chapter";
-  let chatHistory = loadChatHistory(), chatSummary = loadChatSummary();
+
+  // --- Read-aloud (Web Speech API) ---
+  // Queues one utterance per verse (rather than one utterance for the whole
+  // chapter) so we can highlight the verse currently being spoken and so
+  // stopping mid-chapter is instant rather than waiting for a huge buffer.
+  const ttsState = { paneKey:null, utterances:[], idx:0, playing:false };
+  function ttsSupported(){ return "speechSynthesis" in window; }
+  function ttsStop(){
+    if(ttsSupported()) window.speechSynthesis.cancel();
+    ttsState.playing=false; ttsState.paneKey=null; ttsState.utterances=[]; ttsState.idx=0;
+    document.querySelectorAll(".tts-btn").forEach(b=> b.classList.remove("active"));
+    document.querySelectorAll(".verses-text span.tts-current").forEach(s=> s.classList.remove("tts-current"));
+  }
+  function ttsSpeakPane(paneKey){
+    if(!ttsSupported()){ alert("Read-aloud isn't supported in this browser."); return; }
+    if(ttsState.playing && ttsState.paneKey===paneKey){ ttsStop(); return; }
+    ttsStop();
+    const p=panes[paneKey]; const book=BOOKS[p.bookIdx]; const key=p.version+"/"+book[0]+"/"+p.chapter;
+    const verses=cache[key]||[];
+    if(!verses.length) return;
+    ttsState.paneKey=paneKey; ttsState.idx=0; ttsState.playing=true;
+    document.querySelector(`.tts-btn[data-pane="${paneKey}"]`).classList.add("active");
+    ttsState.utterances = verses.map(v=>{
+      const u=new SpeechSynthesisUtterance(v.text);
+      u.rate=0.95; u.pitch=1;
+      u.onstart=()=>{
+        document.querySelectorAll(`.pane[data-pane="${paneKey}"] .verses-text span.tts-current`).forEach(s=> s.classList.remove("tts-current"));
+        const span=document.querySelector(`.pane[data-pane="${paneKey}"] .verses-text span[data-verse="${v.verse}"]`);
+        if(span) span.scrollIntoView({block:"center", behavior:"smooth"});
+        if(span) span.classList.add("tts-current");
+      };
+      return u;
+    });
+    const last=ttsState.utterances[ttsState.utterances.length-1];
+    last.onend=()=> ttsStop();
+    ttsState.utterances.forEach(u=> window.speechSynthesis.speak(u));
+  }
+  document.querySelectorAll(".tts-btn").forEach(b=> b.addEventListener("click", ()=> ttsSpeakPane(b.dataset.pane)));
+
+  function escapeHtml(s){ const d=document.createElement("div"); d.textContent=s; return d.innerHTML; }
+
+  // --- Full-text scripture search (drawer) ---
+  // Word/verse search now lives only here (drawer → "Search verse text" /
+  // "Search whole Bible"), not as a per-word tap on the reading pane. This
+  // avoids a click-a-word popup showing "verses with the same word" that
+  // duplicated this feature and got in the way of tapping a verse to
+  // summarize it.
+  // Same cache-scoped approach as word study, but matches any substring
+  // across all cached chapters/books/versions rather than a single whole
+  // word, so phrase-like searches ("let there be light") work too.
+  const scriptureSearchInput=document.getElementById("scriptureSearch"), ssResults=document.getElementById("scriptureSearchResults");
+  const ssScopeLabel=document.getElementById("ssScopeLabel"), ssWholeBibleBtn=document.getElementById("ssWholeBibleBtn");
+  let ssDebounce;
+  scriptureSearchInput.addEventListener("input", ()=>{
+    clearTimeout(ssDebounce);
+    ssDebounce=setTimeout(()=> runScriptureSearch(scriptureSearchInput.value.trim()), 200);
+  });
+
+  // --- Whole-Bible search index -----------------------------------------
+  // bible-api.com (the only free, keyless, CORS-enabled source this app
+  // already trusts for verse text) has no full-text search endpoint of its
+  // own -- only reference lookup. So "search the whole Bible" is built by
+  // fetching every chapter of every book once, in the reader's current
+  // version, and searching that locally. The downloaded text is cached in
+  // localStorage (per version) so this only needs to run once per version,
+  // not once per session.
+  function getSearchIndex(){
+    try { return JSON.parse(localStorage.getItem(STORAGE_SEARCH_INDEX) || "{}"); } catch { return {}; }
+  }
+  function saveSearchIndex(idx){
+    try { localStorage.setItem(STORAGE_SEARCH_INDEX, JSON.stringify(idx)); }
+    catch(err){ console.warn("Couldn't persist search index (likely storage quota) -- whole-Bible search will still work for this session", err); }
+  }
+  let searchIndexBuild = null; // in-flight build state, if any
+
+  function updateSsScopeLabel(){
+    const idx=getSearchIndex();
+    const version=panes.a.version;
+    const built = idx.version===version ? Object.keys(idx.chapters||{}).length : 0;
+    const total = BOOKS.reduce((sum,b)=> sum+b[2], 0);
+    if(built>=total){
+      ssScopeLabel.textContent = `Searching the whole Bible (${versionName(version)})`;
+      ssWholeBibleBtn.textContent = "Rebuild index";
+    } else if(built>0){
+      ssScopeLabel.textContent = `Whole Bible: ${built}/${total} chapters downloaded (${versionName(version)})`;
+      ssWholeBibleBtn.textContent = "Continue download";
+    } else {
+      ssScopeLabel.textContent = "Searching chapters you've viewed";
+      ssWholeBibleBtn.textContent = "Search whole Bible";
+    }
+  }
+
+  async function buildWholeBibleIndex(){
+    if(searchIndexBuild) return; // already running
+    const version = panes.a.version;
+    let idx = getSearchIndex();
+    if(idx.version !== version) idx = { version, chapters:{} }; // switched translations -- start fresh for this version
+    const jobs=[];
+    BOOKS.forEach((b,bookIdx)=>{ for(let ch=1; ch<=b[2]; ch++){ const key=b[0]+"/"+ch; if(!idx.chapters[key]) jobs.push({bookIdx, book:b, chapter:ch, key}); } });
+    if(!jobs.length){ updateSsScopeLabel(); return; }
+
+    searchIndexBuild = { total: jobs.length, done: 0, cancelled: false };
+    ssWholeBibleBtn.disabled = true;
+    const progressWrap=document.createElement("div"); progressWrap.className="ss-progress-wrap";
+    progressWrap.innerHTML = `<div class="ss-progress-bar"><div class="ss-progress-fill" style="width:0%"></div></div><div class="ss-progress-text"></div>`;
+    scriptureSearchInput.parentElement.appendChild(progressWrap);
+    const fill=progressWrap.querySelector(".ss-progress-fill"), text=progressWrap.querySelector(".ss-progress-text");
+    const alreadyDone = Object.keys(idx.chapters).length;
+    const grandTotal = alreadyDone + jobs.length;
+
+    // Fetch a few chapters concurrently (bible-api.com has no published
+    // hard rate limit for this endpoint, but we stay modest and sequential
+    // in small batches so we don't hammer a free public service).
+    const CONCURRENCY = 3;
+    let cursor = 0;
+    async function worker(){
+      while(cursor < jobs.length){
+        if(searchIndexBuild.cancelled) return;
+        const job = jobs[cursor++];
+        try {
+          const ref = encodeURIComponent(job.book[0]+" "+job.chapter);
+          const res = await fetchWithTimeout("https://bible-api.com/"+ref+"?translation="+version, {}, 10000);
+          if(res.ok){
+            const data = await res.json();
+            if(!data.error && Array.isArray(data.verses)){
+              idx.chapters[job.key] = data.verses.map(v=> [v.verse, (v.text||"").replace(/\s+/g," ").trim()]);
+            }
+          }
+        } catch(err){
+          console.warn("Whole-Bible index: failed to fetch "+job.book[1]+" "+job.chapter, err);
+          // Skip this chapter silently -- it'll be retried on a future "Continue download".
+        }
+        searchIndexBuild.done++;
+        const doneTotal = alreadyDone + searchIndexBuild.done;
+        const pct = Math.round((doneTotal/grandTotal)*100);
+        fill.style.width = pct+"%";
+        text.textContent = `Downloading ${job.book[1]} ${job.chapter}… (${doneTotal}/${grandTotal} chapters)`;
+        if(searchIndexBuild.done % 20 === 0) saveSearchIndex(idx); // periodic save so progress isn't lost if the tab closes
+      }
+    }
+    await Promise.all(Array.from({length:CONCURRENCY}, worker));
+    saveSearchIndex(idx);
+    progressWrap.remove();
+    ssWholeBibleBtn.disabled = false;
+    searchIndexBuild = null;
+    updateSsScopeLabel();
+    if(scriptureSearchInput.value.trim().length>=2) runScriptureSearch(scriptureSearchInput.value.trim());
+  }
+  ssWholeBibleBtn.addEventListener("click", ()=> buildWholeBibleIndex());
+  // versionSelect is declared further down in this script; defer the first
+  // label refresh and the change-listener hookup until after it exists.
+  setTimeout(()=>{ updateSsScopeLabel(); versionSelect.addEventListener("change", updateSsScopeLabel); }, 0);
+
+  function runScriptureSearch(q){
+    if(q.length<2){ ssResults.classList.remove("has-items"); ssResults.innerHTML=""; return; }
+    const qLow=q.toLowerCase();
+    const results=[];
+    const seen=new Set();
+    function addResult(r){
+      const k=r.bookName+r.chapter+r.verse; if(seen.has(k)) return; seen.add(k); results.push(r);
+    }
+    // 1) Chapters already cached from normal reading (any version viewed).
+    Object.keys(cache).forEach(key=>{
+      const [version, bookKey, chapter] = key.split("/");
+      const bookEntry = BOOKS.find(b=> b[0]===bookKey); if(!bookEntry) return;
+      (cache[key]||[]).forEach(v=>{
+        if(v.text.toLowerCase().includes(qLow)) addResult({version, bookName:bookEntry[1], bookIdx:BOOKS.indexOf(bookEntry), chapter:Number(chapter), verse:v.verse, text:v.text});
+      });
+    });
+    // 2) The downloaded whole-Bible index, if one exists for the current version.
+    const idx=getSearchIndex();
+    const wholeBibleAvailable = idx.version===panes.a.version && idx.chapters && Object.keys(idx.chapters).length>0;
+    if(wholeBibleAvailable){
+      Object.keys(idx.chapters).forEach(key=>{
+        const [bookKey, chapter] = key.split("/");
+        const bookEntry = BOOKS.find(b=> b[0]===bookKey); if(!bookEntry) return;
+        idx.chapters[key].forEach(([verse, text])=>{
+          if(text.toLowerCase().includes(qLow)) addResult({version:idx.version, bookName:bookEntry[1], bookIdx:BOOKS.indexOf(bookEntry), chapter:Number(chapter), verse, text});
+        });
+      });
+    }
+    results.sort((a,b)=> a.bookIdx-b.bookIdx || a.chapter-b.chapter || a.verse-b.verse);
+    ssResults.classList.add("has-items");
+    if(!results.length){
+      ssResults.innerHTML = wholeBibleAvailable
+        ? `<div class="ss-note">No matches found in the whole Bible (${versionName(idx.version)}).</div>`
+        : `<div class="ss-note">No matches in chapters you've viewed yet. Tap "Search whole Bible" above to search every chapter, not just ones you've opened.</div>`;
+      return;
+    }
+    const re=new RegExp(`(${q.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")})`, "gi");
+    const capped = results.slice(0,60);
+    ssResults.innerHTML = `<div class="ss-note">${results.length} match${results.length===1?"":"es"}${results.length>60?" (showing first 60)":""}</div>` +
+      capped.map(r=> `<div class="ss-item" data-bookidx="${r.bookIdx}" data-chapter="${r.chapter}" data-version="${r.version}">
+        <div class="ss-ref">${r.bookName} ${r.chapter}:${r.verse}</div>
+        <div class="ss-text">${escapeHtml(r.text).replace(re, m=>`<mark>${m}</mark>`)}</div>
+      </div>`).join("");
+    ssResults.querySelectorAll(".ss-item").forEach(el=>{
+      el.addEventListener("click", ()=>{
+        panes.a.bookIdx=Number(el.dataset.bookidx); panes.a.chapter=Number(el.dataset.chapter); panes.a.version=el.dataset.version;
+        loadPane("a"); renderBookList(bookSearch.value); renderChapterGrid(); updateBookmarkUI(); closeDrawer();
+      });
+    });
+  }
+  // Chat is now backed by IndexedDB with support for multiple named
+  // conversations (see ChatDB above). activeConvoId tracks which one is
+  // currently open in the Chatbot tab; chatHistory/chatSummary hold that
+  // conversation's messages/summary in memory for fast rendering.
+  let conversations = [];
+  let activeConvoId = null;
+  let chatHistory = [], chatSummary = "";
+  let chatReady = false; // true once the initial IndexedDB load (and any migration) has completed
+  async function initChat(){
+    await ChatDB.migrateFromLocalStorageIfNeeded();
+    conversations = await ChatDB.listConversations();
+    if(!conversations.length){
+      const convo = await ChatDB.createConversation("Study Chat");
+      conversations = [convo];
+    }
+    await switchConversation(conversations[0].id, false);
+    chatReady = true;
+    if(currentTab==="chat") renderChat();
+  }
+  async function switchConversation(id, rerender=true){
+    const convo = conversations.find(c=> c.id===id) || await ChatDB.getConversation(id);
+    if(!convo) return;
+    activeConvoId = convo.id;
+    chatSummary = convo.summary || "";
+    const msgs = await ChatDB.getMessages(convo.id);
+    chatHistory = msgs.map(m=> ({ role: m.role, text: m.text, sources: m.sources, ts: m.ts }));
+    if(rerender && currentTab==="chat") renderChat();
+  }
+  initChat();
+
   let verseSummaryReq=0, chapterSummaryReq=0;
 
   // --- Real AI: two independent free, keyless, browser-callable text APIs ----
@@ -631,6 +1076,8 @@
   compareBtn.addEventListener("click", ()=>{
     compareMode=!compareMode; document.body.classList.toggle("compare-mode", compareMode); compareBtn.classList.toggle("active", compareMode);
     document.querySelector('.pane[data-pane="b"]').style.display = compareMode ? "flex" : "none";
+    document.getElementById("compareTabBtn").style.display = compareMode ? "" : "none";
+    if(!compareMode && currentTab==="compare") switchTab("chapter");
     if(compareMode){
       // First time entering compare mode, default pane B to wherever pane A is reading.
       if(!panes.b._touched){ panes.b.bookIdx=panes.a.bookIdx; panes.b.chapter=panes.a.chapter; }
@@ -665,6 +1112,7 @@
   fullscreenBtn.addEventListener("click", ()=>{ if(isFullscreen()) exitFullscreen(); else enterFullscreen(); });
   document.addEventListener("fullscreenchange", updateFullscreenBtn);
   document.addEventListener("webkitfullscreenchange", updateFullscreenBtn);
+
   function populateVersionSelects(){
     const optsHtml = VERSIONS.map(([id,label])=> `<option value="${id}">${label}</option>`).join("");
     versionSelect.innerHTML = optsHtml;
@@ -787,17 +1235,18 @@
   document.querySelectorAll(".next-btn").forEach(btn=> btn.addEventListener("click", ()=> goNext(btn.dataset.pane)));
 
   function loadPane(k){
+    ttsStop();
     const p=panes[k]; const book=BOOKS[p.bookIdx];
     updateHeader(k); updatePager(k);
     const key=p.version+"/"+book[0]+"/"+p.chapter;
-    if(cache[key]){ renderVerses(k, cache[key]); if(k==="a"){ renderCurrentTab(); updateBookmarkUI(); } return; }
+    if(cache[key]){ renderVerses(k, cache[key]); if(k==="a"){ renderCurrentTab(); updateBookmarkUI(); } else if(currentTab==="compare") renderCurrentTab(); return; }
     const req=++p.requestId; renderLoading(k);
     const ref=encodeURIComponent(book[0]+" "+p.chapter);
     const url="https://bible-api.com/"+ref+"?translation="+p.version;
     fetch(url).then(r=>{ if(!r.ok) throw new Error("http-"+r.status); return r.json(); }).then(data=>{
       if(req!==p.requestId) return; if(data.error) throw new Error("api-error");
       const verses=Array.isArray(data.verses) ? data.verses.map(v=>({verse:v.verse, text:(v.text||"").replace(/\s+/g," ").trim()})) : [];
-      cache[key]=verses; renderVerses(k, verses); if(k==="a"){ renderCurrentTab(); updateBookmarkUI(); }
+      cache[key]=verses; renderVerses(k, verses); if(k==="a"){ renderCurrentTab(); updateBookmarkUI(); } else if(currentTab==="compare") renderCurrentTab();
     }).catch(err=>{ if(req!==p.requestId) return; renderError(k, err.message); });
   }
   function updateHeader(k){
@@ -835,7 +1284,7 @@
       const sup=document.createElement("sup"); sup.textContent=v.verse; span.appendChild(sup);
       span.appendChild(document.createTextNode(v.text+" "));
       span.addEventListener("click", ()=>{
-        document.querySelectorAll(".verses-text span").forEach(s=> s.classList.remove("selected"));
+        document.querySelectorAll(".verses-text span[data-verse]").forEach(s=> s.classList.remove("selected"));
         span.classList.add("selected");
         selectedVerse={bookName:book[1], chapter:p.chapter, verseNum:v.verse, text:v.text, bookIdx:p.bookIdx, key:key, color:hl?hl.color:null};
         openAi("verse");
@@ -848,6 +1297,14 @@
     if(chapBtn){ chapBtn.addEventListener("click", ()=>{ toggleBookmark(p.bookIdx,p.chapter); renderBookmarkList(); renderChapterGrid(); renderBookList(""); updateBookmarkUI(); renderVerses(paneKey, verses); if(currentTab==="marks") renderMarks(); }); }
   }
 
+  let aiMode = "scholar"; // "scholar" | "strict" | "cross" | "conversational" — controls which system prompt every AI call below uses
+  function switchMode(mode){
+    aiMode = mode;
+    document.querySelectorAll(".mode-btn").forEach(b=> b.classList.toggle("active", b.dataset.mode===mode));
+    renderCurrentTab(); // re-render whatever tab is open under the new mode
+  }
+  document.querySelectorAll(".mode-btn").forEach(b=> b.addEventListener("click", ()=> switchMode(b.dataset.mode)));
+
   function switchTab(tab){
     currentTab=tab; document.querySelectorAll(".ai-tab").forEach(t=> t.classList.toggle("active", t.dataset.tab===tab));
     if(tab==="chat") aiChatForm.style.display="flex"; else aiChatForm.style.display="none";
@@ -857,7 +1314,8 @@
   function renderCurrentTab(){
     if(currentTab==="chapter") renderChapterSummary();
     else if(currentTab==="verse") renderVerseSummary();
-    else if(currentTab==="today") renderLiturgicalToday();
+    else if(currentTab==="outline") renderOutlineTab();
+    else if(currentTab==="compare") renderCompareTab();
     else if(currentTab==="chat") renderChat();
     else if(currentTab==="marks") renderMarks();
   }
@@ -891,7 +1349,7 @@
     }
   }
   async function generateChapterSummary(book, chapter, verses){
-    const system=`You are an expert, denominationally neutral Bible study assistant with deep knowledge of biblical history, literary structure, original languages, cross-references, and the wider Christian theological tradition -- including Catholic teaching (the Catechism, Church Fathers, magisterial and conciliar teaching) as well as other Christian traditions. You will be given the full text of a Bible chapter. Think carefully about its historical setting, literary genre, key theological themes, and how it connects to the surrounding narrative before answering. Where relevant and accurate, you may note how a passage has been read in the Catholic tradition (e.g. a Church Father's interpretation, a Catechism theme, or its place in the Lectionary) alongside other readings, but never quote copyrighted texts verbatim -- describe teaching in your own words. Reply in EXACTLY this plain-text format, nothing else, no markdown, no headers other than the labels below:
+    const scholarPrompt=`You are an expert, denominationally neutral Bible study assistant with deep knowledge of biblical history, literary structure, original languages, cross-references, and the wider Christian theological tradition. You will be given the full text of a Bible chapter. Think carefully about its historical setting, literary genre, key theological themes, and how it connects to the surrounding narrative before answering. Reply in EXACTLY this plain-text format, nothing else, no markdown, no headers other than the labels below:
 OVERVIEW: (3-4 sentences giving a substantive summary of the chapter's content, central theme, and why it matters in its broader biblical context)
 KEY POINTS:
 - (a specific, insightful observation about a notable verse or moment — name the verse number, not just "a verse")
@@ -900,6 +1358,33 @@ KEY POINTS:
 - (a specific, insightful observation about a notable verse or moment — name the verse number, not just "a verse")
 STRUCTURE: (2-3 sentences on how the chapter is organized — its literary shape, shifts in speaker/scene/argument, and how it fits with the chapters immediately before and after)
 Be precise and concrete rather than generic. Avoid vague filler like "this chapter teaches us many things." Ground every claim in the actual text provided.`;
+    const strictPrompt=`You are a strict scripture-only Bible assistant. You will be given the full text of a Bible chapter. Your ONLY source is the text provided — do not draw on church tradition, denominational teaching, theologians, or outside knowledge to fill gaps, and do not soften or reinterpret what the text plainly says. Reply in EXACTLY this plain-text format, nothing else, no markdown, no headers other than the labels below:
+OVERVIEW: (3-4 sentences summarizing what the chapter itself says, citing verse numbers, with no outside interpretation added)
+KEY POINTS:
+- (a specific observation about a notable verse, citing the verse number, stated as what the text says — not as later doctrine about it)
+- (a specific observation about a notable verse, citing the verse number, stated as what the text says — not as later doctrine about it)
+- (a specific observation about a notable verse, citing the verse number, stated as what the text says — not as later doctrine about it)
+- (a specific observation about a notable verse, citing the verse number, stated as what the text says — not as later doctrine about it)
+STRUCTURE: (2-3 sentences on how the chapter itself is organized, based only on what's in the text provided)
+If a key theme in the chapter is genuinely unclear or disputed by the plain text itself, say so rather than resolving it with outside doctrine. Ground every single claim in the verses provided.`;
+    const crossPrompt=`You are a Christ-centered Bible study assistant. You will be given the full text of a Bible chapter. Your task is to summarize the chapter faithfully AND show how it points forward to, echoes, or is fulfilled in Jesus's death and resurrection on the cross — the way the whole of scripture is understood to lead to and flow from that event. Don't force a forced or shallow connection; find the real thread (e.g. sacrifice, substitution, covenant, sin and its cost, redemption, foreshadowing, a type of Christ, a promise later fulfilled at the cross) and explain it plainly. Reply in EXACTLY this plain-text format, nothing else, no markdown, no headers other than the labels below:
+OVERVIEW: (3-4 sentences summarizing the chapter's content and central theme)
+KEY POINTS:
+- (a specific observation about a notable verse or moment, naming the verse number)
+- (a specific observation about a notable verse or moment, naming the verse number)
+- (a specific observation about a notable verse or moment, naming the verse number)
+- (an observation that draws the explicit connecting line to the cross — what this chapter foreshadows, echoes, or how it's answered by Jesus's death and resurrection)
+STRUCTURE: (2-3 sentences on how the chapter is organized, ending with a sentence on how it fits into the larger story that leads to the cross)
+Be specific and grounded in the text — don't just tack on a generic "this points to Jesus" line without explaining how.`;
+    const conversationalPrompt=`You're a warm, knowledgeable friend talking through this Bible chapter with someone, not writing a formal study guide. You will be given the full text of a Bible chapter. Keep it plain-spoken and conversational — like you're actually talking, not lecturing. Reply in EXACTLY this plain-text format, nothing else, no markdown, no headers other than the labels below:
+OVERVIEW: (2-3 relaxed, conversational sentences on what's going on in this chapter — plain language, like you're catching a friend up)
+KEY POINTS:
+- (one thing worth noticing, said casually, naming the verse number)
+- (one thing worth noticing, said casually, naming the verse number)
+- (one thing worth noticing, said casually, naming the verse number)
+STRUCTURE: (1-2 relaxed sentences on how the chapter flows)
+Still be substantive and accurate — casual tone, not casual content.`;
+    const system = aiMode==="strict" ? strictPrompt : aiMode==="cross" ? crossPrompt : aiMode==="conversational" ? conversationalPrompt : scholarPrompt;
     const versesText = verses.map(v=> `${v.verse}. ${v.text}`).join("\n").slice(0,6000);
     const user=`${book[1]} chapter ${chapter}:\n${versesText}`;
     const raw = await generateWithAI(system, user, 700);
@@ -959,11 +1444,27 @@ Be precise and concrete rather than generic. Avoid vague filler like "this chapt
     }
   }
   async function generateVerseMeaning(v){
-    const system=`You are an expert, denominationally neutral Bible study assistant with deep knowledge of biblical history, original languages (Hebrew/Greek/Aramaic), cross-references, and the wider Christian theological tradition -- including Catholic teaching (the Catechism, Church Fathers, magisterial teaching, the saints) as well as other Christian traditions. You will be given a single Bible verse. Where relevant and accurate, you may note how the verse has been read in the Catholic tradition alongside other interpretations, but never quote copyrighted texts verbatim -- describe teaching in your own words. Reply in EXACTLY this plain-text format, nothing else, no markdown:
+    const scholarPrompt=`You are an expert, denominationally neutral Bible study assistant with deep knowledge of biblical history, original languages (Hebrew/Greek/Aramaic), cross-references, and the wider Christian theological tradition. You will be given a single Bible verse. Reply in EXACTLY this plain-text format, nothing else, no markdown:
 MEANING: (2-3 sentences on what the verse means, including any noteworthy detail from the original language or historical setting if it meaningfully sharpens the meaning)
 CONTEXT: (2-3 sentences on how it fits within its surrounding passage and the book's larger argument or story)
 APPLICATION: (one specific, thought-provoking reflection question or practical takeaway — avoid generic advice like "trust God more"; make it concrete to what this verse actually says)
 Be precise and concrete. Avoid vague filler.`;
+    const strictPrompt=`You are a strict scripture-only Bible assistant. You will be given a single Bible verse. Your ONLY source is the verse text and its immediate surrounding passage — do not draw on church tradition, theologians, or outside doctrine to fill in meaning, and do not soften what the verse plainly says. Reply in EXACTLY this plain-text format, nothing else, no markdown:
+MEANING: (2-3 sentences on what the verse itself says, staying with the plain sense of the words)
+CONTEXT: (2-3 sentences on how it fits within its surrounding passage, based only on the surrounding text)
+APPLICATION: (one specific reflection question grounded directly in what this verse says — not a general spiritual platitude)
+If the verse's plain meaning is genuinely ambiguous from the text alone, say so rather than resolving it with outside doctrine.`;
+    const crossPrompt=`You are a Christ-centered Bible study assistant. You will be given a single Bible verse. Explain its meaning, then explicitly connect it to Jesus's death and resurrection on the cross — the real thread, not a forced one (sacrifice, sin and its cost, substitution, covenant, promise fulfilled, a type or shadow of Christ, forgiveness bought at a price, and so on). Reply in EXACTLY this plain-text format, nothing else, no markdown:
+MEANING: (2-3 sentences on what the verse means in its own setting)
+CONTEXT: (1-2 sentences on how it fits its surrounding passage, then explicitly draw the line to the cross — what this verse points toward, echoes, or how it's answered by Jesus's death and resurrection)
+APPLICATION: (one specific, concrete reflection question that ties what this verse says to what Jesus did on the cross)
+Be specific about the connection — explain how, don't just assert that it connects.`;
+    const conversationalPrompt=`You're a warm, knowledgeable friend talking through this one verse with someone, not writing a formal study guide. You will be given a single Bible verse. Keep it plain-spoken and conversational. Reply in EXACTLY this plain-text format, nothing else, no markdown:
+MEANING: (1-2 relaxed, plain-language sentences on what this verse is actually saying)
+CONTEXT: (1-2 relaxed sentences on how it fits what's happening around it)
+APPLICATION: (one down-to-earth, specific question or thought to sit with — said like a friend would ask it, not a textbook)
+Still be accurate and substantive — casual tone, not casual content.`;
+    const system = aiMode==="strict" ? strictPrompt : aiMode==="cross" ? crossPrompt : aiMode==="conversational" ? conversationalPrompt : scholarPrompt;
     const user=`Verse: ${v.bookName} ${v.chapter}:${v.verseNum}\nText: "${v.text}"`;
     const raw = await generateWithAI(system, user, 420);
     const parsed = parseLabeledSections(raw, ["MEANING","CONTEXT","APPLICATION"]);
@@ -971,16 +1472,311 @@ Be precise and concrete. Avoid vague filler.`;
     return { meaning: parsed.MEANING || "(no summary generated)", context: parsed.CONTEXT || "", application: parsed.APPLICATION || "" };
   }
 
+  // --- Sermon / lesson outline builder ---------------------------------
+  // Builds a structured teaching outline (points, sub-points, an
+  // illustration suggestion, and discussion questions) from whichever
+  // chapter is currently open, tuned to an audience and target length the
+  // user picks. State persists per-session (not localStorage) so switching
+  // tabs and coming back doesn't lose the last generated outline.
+  let outlineReq = 0;
+  let outlineSettings = { audience: "general", length: "medium" };
+  let lastOutline = null; // { book, chapter, audience, length, data } -- cached so re-opening the tab doesn't silently re-spend a call
+  const OUTLINE_AUDIENCES = [
+    ["general","General congregation"],
+    ["youth","Youth / teens"],
+    ["small-group","Small group / bible study"],
+    ["kids","Children's lesson"],
+  ];
+  const OUTLINE_LENGTHS = [
+    ["short","Short (~10 min)"],
+    ["medium","Medium (~25 min)"],
+    ["long","Long (~45 min)"],
+  ];
+  function renderOutlineTab(){
+    const p=panes.a; const book=BOOKS[p.bookIdx]; const key=p.version+"/"+book[0]+"/"+p.chapter; const verses=cache[key];
+    if(!verses || !verses.length){ aiContent.innerHTML='<div class="ai-empty"><p>Load a chapter to build an outline from it.</p></div>'; return; }
+    const cached = lastOutline && lastOutline.book===book[1] && lastOutline.chapter===p.chapter && lastOutline.audience===outlineSettings.audience && lastOutline.length===outlineSettings.length ? lastOutline.data : null;
+    aiContent.innerHTML = `
+      <div class="ai-card">
+        <h3>Build an Outline</h3>
+        <div class="outline-controls">
+          <div>
+            <div class="outline-field-label">Audience</div>
+            <div class="outline-chip-row" id="outlineAudienceRow">
+              ${OUTLINE_AUDIENCES.map(([id,label])=> `<button class="outline-chip ${outlineSettings.audience===id?"active":""}" data-audience="${id}">${label}</button>`).join("")}
+            </div>
+          </div>
+          <div>
+            <div class="outline-field-label">Length</div>
+            <div class="outline-chip-row" id="outlineLengthRow">
+              ${OUTLINE_LENGTHS.map(([id,label])=> `<button class="outline-chip ${outlineSettings.length===id?"active":""}" data-length="${id}">${label}</button>`).join("")}
+            </div>
+          </div>
+          <button class="outline-generate-btn" id="outlineGenerateBtn">${cached ? "Regenerate Outline" : "Generate Outline"}</button>
+        </div>
+      </div>
+      <div id="outlineResult"></div>
+    `;
+    aiContent.querySelectorAll("#outlineAudienceRow .outline-chip").forEach(btn=>{
+      btn.addEventListener("click", ()=>{ outlineSettings.audience=btn.dataset.audience; renderOutlineTab(); });
+    });
+    aiContent.querySelectorAll("#outlineLengthRow .outline-chip").forEach(btn=>{
+      btn.addEventListener("click", ()=>{ outlineSettings.length=btn.dataset.length; renderOutlineTab(); });
+    });
+    const genBtn = document.getElementById("outlineGenerateBtn");
+    genBtn.addEventListener("click", ()=> generateOutline(book, p.chapter, verses));
+    if(cached) renderOutlineResult(cached, book, p.chapter);
+  }
+  async function generateOutline(book, chapter, verses){
+    const reqToken=++outlineReq;
+    const genBtn=document.getElementById("outlineGenerateBtn"); if(genBtn){ genBtn.disabled=true; genBtn.textContent="Generating…"; }
+    const resultEl=document.getElementById("outlineResult");
+    if(resultEl) resultEl.innerHTML = `
+      <div class="ai-card gold outline-title-card">${skeletonHtml([70])}</div>
+      <div class="ai-card">${skeletonHtml([90,85,40,80,75,40])}</div>
+      <div class="ai-card">${skeletonHtml([88,60])}</div>
+    `;
+    try {
+      const data = await callOutlineAI(book, chapter, verses, outlineSettings);
+      if(reqToken!==outlineReq) return;
+      lastOutline = { book: book[1], chapter, audience: outlineSettings.audience, length: outlineSettings.length, data };
+      renderOutlineResult(data, book, chapter);
+    } catch(err){
+      if(reqToken!==outlineReq) return;
+      console.error(err);
+      if(resultEl) resultEl.innerHTML = `<div class="ai-card"><p style="color:var(--ink-faint);font-size:13px">${aiErrorMessage(err)}</p><button class="ai-action-btn" id="retryOutline" style="margin-top:8px">Try Again</button></div>`;
+      const retryBtn=document.getElementById("retryOutline"); if(retryBtn) retryBtn.addEventListener("click", ()=> generateOutline(book, chapter, verses));
+    } finally {
+      if(reqToken===outlineReq && genBtn){ genBtn.disabled=false; genBtn.textContent="Regenerate Outline"; }
+    }
+  }
+  function renderOutlineResult(data, book, chapter){
+    const resultEl=document.getElementById("outlineResult"); if(!resultEl) return;
+    const audienceLabel = (OUTLINE_AUDIENCES.find(a=> a[0]===outlineSettings.audience)||[])[1] || "";
+    const lengthLabel = (OUTLINE_LENGTHS.find(l=> l[0]===outlineSettings.length)||[])[1] || "";
+    resultEl.innerHTML = `
+      <div class="ai-card gold outline-title-card">
+        <h3>${escapeHtml(data.title)}</h3>
+        <div class="outline-meta">${book[1]} ${chapter} · ${audienceLabel} · ${lengthLabel}</div>
+      </div>
+      <div class="ai-card">
+        <h3>Big Idea</h3>
+        <p>${escapeHtml(data.bigIdea)}</p>
+      </div>
+      <div class="ai-card">
+        <h3>Outline</h3>
+        ${data.points.map((pt,i)=> `
+          <div class="outline-point">
+            <div class="bullet"><div class="num">${i+1}</div><p><strong>${escapeHtml(pt.heading)}</strong> — ${escapeHtml(pt.text)}</p></div>
+            ${pt.subpoints && pt.subpoints.length ? `<div class="outline-subpoints">${pt.subpoints.map(sp=> `<div class="sub-item">${escapeHtml(sp)}</div>`).join("")}</div>` : ""}
+          </div>
+        `).join("")}
+        ${data.illustration ? `<div class="outline-illustration"><b>Illustration idea:</b> ${escapeHtml(data.illustration)}</div>` : ""}
+      </div>
+      <div class="ai-card">
+        <h3>Discussion Questions</h3>
+        ${data.questions.map((q,i)=> `<div class="bullet"><div class="num">${i+1}</div><p>${escapeHtml(q)}</p></div>`).join("")}
+      </div>
+      <div class="outline-actions">
+        <button class="ai-action-btn" id="outlineCopyBtn">Copy as Text</button>
+      </div>
+    `;
+    const copyBtn=document.getElementById("outlineCopyBtn");
+    if(copyBtn) copyBtn.addEventListener("click", async ()=>{
+      const text = outlineToPlainText(data, book, chapter);
+      try {
+        await navigator.clipboard.writeText(text);
+        copyBtn.textContent="Copied!"; copyBtn.classList.add("copied");
+        setTimeout(()=>{ copyBtn.textContent="Copy as Text"; copyBtn.classList.remove("copied"); }, 1800);
+      } catch(err){
+        console.warn("Clipboard write failed", err);
+        copyBtn.textContent="Couldn't copy";
+        setTimeout(()=>{ copyBtn.textContent="Copy as Text"; }, 1800);
+      }
+    });
+  }
+  function outlineToPlainText(data, book, chapter){
+    let out = `${data.title}\n${book[1]} ${chapter}\n\nBig Idea: ${data.bigIdea}\n\n`;
+    data.points.forEach((pt,i)=>{
+      out += `${i+1}. ${pt.heading} — ${pt.text}\n`;
+      (pt.subpoints||[]).forEach(sp=> out += `   - ${sp}\n`);
+    });
+    if(data.illustration) out += `\nIllustration idea: ${data.illustration}\n`;
+    out += `\nDiscussion Questions:\n`;
+    data.questions.forEach((q,i)=> out += `${i+1}. ${q}\n`);
+    return out;
+  }
+  async function callOutlineAI(book, chapter, verses, opts){
+    const lengthSpec = { short: "3 main points, 1-2 sub-points each, 3 discussion questions", medium: "4 main points, 2-3 sub-points each, 4 discussion questions", long: "5-6 main points, 2-3 sub-points each, 5 discussion questions" }[opts.length];
+    const audienceSpec = { general:"a general adult congregation", youth:"teenagers -- use relatable, contemporary language and examples without being condescending", "small-group":"a small group bible study -- favor discussion-friendly, conversational framing over a formal sermon voice", kids:"children roughly ages 6-11 -- use very simple, concrete language, short sentences, and a relatable illustration a child would understand" }[opts.audience];
+    const scholarPrompt=`You are an expert homiletics assistant helping a pastor or teacher prepare a sermon/lesson outline from a Bible chapter, for ${audienceSpec}. Draw on biblical history, literary structure, cross-references, and the wider Christian theological tradition as needed. Target: ${lengthSpec}.
+You must reply with ONLY a single valid JSON object, no markdown fences, no commentary before or after, matching exactly this shape:
+{"title":"a short compelling sermon/lesson title","bigIdea":"one sentence stating the single central takeaway of the whole message","points":[{"heading":"short point heading","text":"1-2 sentences developing the point, citing verse numbers","subpoints":["short supporting sub-point citing a verse","short supporting sub-point citing a verse"]}],"illustration":"one concrete illustration, analogy, or story idea a speaker could use to make the big idea land, appropriate for the audience","questions":["a discussion/reflection question tied to the passage","..."]}
+Ground every point in the actual chapter text provided. Be specific and concrete, not generic. Return ONLY the JSON object.`;
+    const strictPrompt=`You are a strict scripture-only homiletics assistant helping prepare a sermon/lesson outline from a Bible chapter, for ${audienceSpec}. Your ONLY source of authority is the chapter text provided -- do not draw on church tradition, denominational teaching, theologians, or outside knowledge to fill gaps, and do not soften or reinterpret what the text plainly says. Target: ${lengthSpec}.
+You must reply with ONLY a single valid JSON object, no markdown fences, no commentary before or after, matching exactly this shape:
+{"title":"a short title drawn from the passage itself","bigIdea":"one sentence stating the central point the text itself makes","points":[{"heading":"short point heading","text":"1-2 sentences developing the point, staying with the plain sense of the text and citing verse numbers","subpoints":["short supporting sub-point citing a verse","short supporting sub-point citing a verse"]}],"illustration":"one concrete, plain illustration or analogy that stays true to what the text says, appropriate for the audience","questions":["a discussion/reflection question grounded directly in what the text says","..."]}
+If a point in the text is genuinely ambiguous from the plain text alone, say so within that point rather than resolving it with outside doctrine. Return ONLY the JSON object.`;
+    const crossPrompt=`You are a Christ-centered homiletics assistant helping prepare a sermon/lesson outline from a Bible chapter, for ${audienceSpec}. Every outline should stay grounded in the passage AND draw an explicit, well-explained line to Jesus's death and resurrection on the cross -- the real thread in this passage (sacrifice, sin and its cost, substitution, covenant, promise fulfilled, a type or shadow of Christ), not a forced one. Target: ${lengthSpec}.
+You must reply with ONLY a single valid JSON object, no markdown fences, no commentary before or after, matching exactly this shape:
+{"title":"a short compelling sermon/lesson title","bigIdea":"one sentence stating the single central takeaway, connecting the passage to the cross","points":[{"heading":"short point heading","text":"1-2 sentences developing the point, citing verse numbers","subpoints":["short supporting sub-point citing a verse","short supporting sub-point citing a verse"]}],"illustration":"one concrete illustration, analogy, or story idea that helps the audience feel the connection to the cross, appropriate for the audience","questions":["a discussion/reflection question tied to the passage and to what Jesus did on the cross","..."]}
+At least one point must explicitly explain the connection to the cross, not just assert it. Ground every point in the actual chapter text provided. Return ONLY the JSON object.`;
+    const conversationalPrompt=`You're helping someone put together a relaxed, conversational talk or small-group discussion outline from a Bible chapter, for ${audienceSpec}. Keep the language plain-spoken and natural, like notes for talking with people, not a formal sermon manuscript. Target: ${lengthSpec}.
+You must reply with ONLY a single valid JSON object, no markdown fences, no commentary before or after, matching exactly this shape:
+{"title":"a short, natural-sounding title","bigIdea":"one plain-spoken sentence stating the main takeaway","points":[{"heading":"short, casual point heading","text":"1-2 plain-spoken sentences developing the point, citing verse numbers","subpoints":["short casual supporting sub-point citing a verse","short casual supporting sub-point citing a verse"]}],"illustration":"one relatable, everyday illustration or story idea, appropriate for the audience","questions":["a natural, conversational discussion question tied to the passage","..."]}
+Ground every point in the actual chapter text provided, but keep the voice casual and warm throughout. Return ONLY the JSON object.`;
+    const system = aiMode==="strict" ? strictPrompt : aiMode==="cross" ? crossPrompt : aiMode==="conversational" ? conversationalPrompt : scholarPrompt;
+    const versesText = verses.map(v=> `${v.verse}. ${v.text}`).join("\n").slice(0,6000);
+    const user=`${book[1]} chapter ${chapter}:\n${versesText}`;
+    const raw = await generateWithAI(system, user, 1100);
+    let cleaned = raw.trim().replace(/^```(?:json)?/i,"").replace(/```$/,"").trim();
+    const firstBrace = cleaned.indexOf("{"), lastBrace = cleaned.lastIndexOf("}");
+    if(firstBrace>=0 && lastBrace>firstBrace) cleaned = cleaned.slice(firstBrace, lastBrace+1);
+    let parsed;
+    try { parsed = JSON.parse(cleaned); } catch(err){ throw new Error("malformed-response"); }
+    if(!parsed || !Array.isArray(parsed.points) || !parsed.points.length) throw new Error("malformed-response");
+    return {
+      title: parsed.title || `${book[1]} ${chapter}`,
+      bigIdea: parsed.bigIdea || "",
+      points: parsed.points.map(pt=> ({ heading: pt.heading||"", text: pt.text||"", subpoints: Array.isArray(pt.subpoints) ? pt.subpoints.filter(Boolean) : [] })),
+      illustration: parsed.illustration || "",
+      questions: Array.isArray(parsed.questions) ? parsed.questions.filter(Boolean) : []
+    };
+  }
+
+  // --- Compare translations explainer (compare-mode AI tab) ---
+  let compareReq = 0;
+  async function renderCompareTab(){
+    if(!compareMode){
+      aiContent.innerHTML=`<div class="ai-empty"><p>Turn on Compare (top toolbar) to compare two translations side by side.</p></div>`;
+      return;
+    }
+    const pa=panes.a, pb=panes.b, bookA=BOOKS[pa.bookIdx], bookB=BOOKS[pb.bookIdx];
+    const keyA=pa.version+"/"+bookA[0]+"/"+pa.chapter, keyB=pb.version+"/"+bookB[0]+"/"+pb.chapter;
+    const versesA=cache[keyA], versesB=cache[keyB];
+    if(!versesA || !versesA.length || !versesB || !versesB.length){
+      aiContent.innerHTML=`<div class="ai-empty"><p>Let both panes finish loading, then reopen this tab.</p></div>`;
+      return;
+    }
+    if(bookA[0]!==bookB[0] || pa.chapter!==pb.chapter){
+      aiContent.innerHTML=`<div class="ai-empty"><p>Both panes are on different passages (${bookA[1]} ${pa.chapter} vs ${bookB[1]} ${pb.chapter}). Navigate both panes to the same chapter to compare translations of it.</p></div>`;
+      return;
+    }
+    const reqToken = ++compareReq;
+    aiContent.innerHTML = `<div class="ai-card"><h3>${versionName(pa.version)} vs ${versionName(pb.version)} — ${bookA[1]} ${pa.chapter}</h3>${skeletonHtml([90,85,70,60])}</div>`;
+    try {
+      const explanation = await generateCompareExplanation(bookA, pa.chapter, versesA, pa.version, versesB, pb.version);
+      if(reqToken!==compareReq) return;
+      const card=aiContent.querySelector(".ai-card");
+      if(card) card.innerHTML = `<h3>${versionName(pa.version)} vs ${versionName(pb.version)} — ${bookA[1]} ${pa.chapter}</h3><p>${explanation}</p>`;
+    } catch(err){
+      if(reqToken!==compareReq) return;
+      console.error(err);
+      const card=aiContent.querySelector(".ai-card");
+      if(card) card.innerHTML = `<h3>${versionName(pa.version)} vs ${versionName(pb.version)}</h3><p style="color:var(--ink-faint);font-size:13px">${aiErrorMessage(err)}</p><button class="ai-action-btn" id="retryCompare" style="margin-top:8px">Try Again</button>`;
+      const retryBtn=document.getElementById("retryCompare"); if(retryBtn) retryBtn.addEventListener("click", ()=> renderCompareTab());
+    }
+  }
+  async function generateCompareExplanation(book, chapter, versesA, versionA, versesB, versionB){
+    const scholarPrompt=`You are an expert Bible translation assistant. You will be given the same chapter in two different English translations. Identify 3-5 of the most meaningfully different word or phrase choices between the two translations (not trivial spelling/punctuation differences), and for each one explain, in a sentence or two, what's different and why translators might have made that choice (e.g. formal vs dynamic equivalence, a Hebrew/Greek word with more than one valid rendering, an archaic vs modern word choice). Write it as short flowing prose, not a rigid list — but you may use verse numbers inline to anchor each point. 4-7 sentences total. No markdown, no preamble.`;
+    const strictPrompt=`You are a strict scripture-only Bible assistant. You will be given the same chapter in two different English translations. Point out 3-5 places where the wording genuinely differs between them, citing verse numbers, describing plainly what each translation says at that point without speculating about translators' theological motives or which one is "more correct" — simply lay out what each version's text states so the reader can compare for themselves. 4-7 sentences. No markdown, no preamble.`;
+    // Compare tab is a translation-wording diff, not commentary — Cross-Centered
+    // and Conversational modes don't change its job, so both fall back to scholar.
+    const system = aiMode==="strict" ? strictPrompt : scholarPrompt;
+    const textB = versesB.map(v=> `${v.verse}. ${v.text}`).join("\n").slice(0,3500);
+    const user=`${book[1]} ${chapter} in ${versionName(versionA)}:\n${textA}\n\n${book[1]} ${chapter} in ${versionName(versionB)}:\n${textB}`;
+    const text = await generateWithAI(system, user, 500);
+    return text.trim();
+  }
+
   function renderChat(){
-    if(aiContent.querySelector("#aiChatLog")) return;
-    const memoryNote = chatSummary ? `<div class="chat-memory-note">Remembering earlier conversation <button id="clearChatMemBtn" title="Forget conversation history">Clear</button></div>` : (chatHistory.length ? `<div class="chat-memory-note">Continuing from your last session <button id="clearChatMemBtn" title="Forget conversation history">Clear</button></div>` : "");
-    aiContent.innerHTML=`${memoryNote}<div id="aiChatLog"></div><div class="ai-empty" id="chatEmpty"><p>Ask a question and get answers grounded in scripture with references.</p></div>`;
-    const log=document.getElementById("aiChatLog");
+    if(!chatReady){ aiContent.innerHTML=`<div class="ai-empty"><p>Loading conversations…</p></div>`; return; }
+    const activeConvo = conversations.find(c=> c.id===activeConvoId);
+    const memoryNote = chatSummary ? `<div class="chat-memory-note">Remembering earlier conversation <button id="clearChatMemBtn" title="Forget conversation history">Clear</button></div>` : "";
+    aiContent.innerHTML = `
+      <div class="convo-bar">
+        <div class="convo-select-wrap">
+          <button id="convoSelectBtn" type="button"><span class="convo-name">${escapeHtml(activeConvo ? activeConvo.title : "Conversation")}</span><span class="caret">▾</span></button>
+          <div class="convo-dropdown" id="convoDropdown"></div>
+        </div>
+        <button id="convoNewBtn" type="button" title="Start a new conversation">+ New</button>
+      </div>
+      ${memoryNote}<div id="aiChatLog"></div><div class="ai-empty" id="chatEmpty"><p>Ask a question and get answers grounded in scripture with references.</p></div>
+    `;
     chatHistory.forEach(m=> addMsg(m.role, m.text, m.sources, false));
     if(chatHistory.length>0){ const e=document.getElementById("chatEmpty"); if(e) e.style.display="none"; }
     const clearBtn=document.getElementById("clearChatMemBtn");
-    if(clearBtn) clearBtn.addEventListener("click", ()=>{
-      if(confirm("Forget this conversation? The assistant will start fresh next time.")){ clearChatMemory(); renderChat(); }
+    if(clearBtn) clearBtn.addEventListener("click", async ()=>{
+      if(confirm("Forget this conversation's memory summary? Recent messages are kept, but older context folded into the summary will be forgotten.")){
+        chatSummary=""; await ChatDB.saveSummary(activeConvoId, ""); renderChat();
+      }
+    });
+    wireConvoBar();
+  }
+  function wireConvoBar(){
+    const selectBtn=document.getElementById("convoSelectBtn"), dropdown=document.getElementById("convoDropdown"), newBtn=document.getElementById("convoNewBtn");
+    if(!selectBtn) return;
+    function closeDropdown(){ dropdown.classList.remove("open"); document.removeEventListener("click", outsideClick); }
+    function outsideClick(e){ if(!dropdown.contains(e.target) && e.target!==selectBtn) closeDropdown(); }
+    function renderDropdown(){
+      dropdown.innerHTML = conversations.map(c=> `
+        <div class="convo-item ${c.id===activeConvoId?"active":""}" data-id="${c.id}">
+          <div style="min-width:0;flex:1"><div class="convo-item-name">${escapeHtml(c.title)}</div><div class="convo-item-meta">${new Date(c.updatedAt).toLocaleDateString()}</div></div>
+          <div class="convo-item-actions">
+            <button class="convo-rename-btn" data-id="${c.id}" title="Rename">Rename</button>
+            ${conversations.length>1 ? `<button class="convo-delete-btn" data-id="${c.id}" title="Delete">Delete</button>` : ""}
+          </div>
+        </div>
+      `).join("");
+      dropdown.querySelectorAll(".convo-item").forEach(el=>{
+        el.addEventListener("click", async (e)=>{
+          if(e.target.classList.contains("convo-rename-btn") || e.target.classList.contains("convo-delete-btn")) return;
+          const id=el.dataset.id; closeDropdown();
+          if(id!==activeConvoId){ await switchConversation(id); }
+        });
+      });
+      dropdown.querySelectorAll(".convo-rename-btn").forEach(btn=>{
+        btn.addEventListener("click", (e)=>{
+          e.stopPropagation();
+          const item=btn.closest(".convo-item"); const id=btn.dataset.id;
+          const convo=conversations.find(c=> c.id===id); if(!convo) return;
+          const nameDiv=item.querySelector(".convo-item-name");
+          nameDiv.outerHTML = `<input class="convo-rename-input" value="${escapeHtml(convo.title)}" />`;
+          const input=item.querySelector(".convo-rename-input"); input.focus(); input.select();
+          async function commit(){
+            const newTitle=input.value.trim() || convo.title;
+            await ChatDB.renameConversation(id, newTitle);
+            conversations = await ChatDB.listConversations();
+            renderDropdown();
+            if(id===activeConvoId) renderChat();
+          }
+          input.addEventListener("keydown", ev=>{ if(ev.key==="Enter"){ ev.preventDefault(); commit(); } if(ev.key==="Escape"){ renderDropdown(); } });
+          input.addEventListener("blur", commit);
+        });
+      });
+      dropdown.querySelectorAll(".convo-delete-btn").forEach(btn=>{
+        btn.addEventListener("click", async (e)=>{
+          e.stopPropagation();
+          const id=btn.dataset.id; const convo=conversations.find(c=> c.id===id); if(!convo) return;
+          if(!confirm(`Delete "${convo.title}"? This can't be undone.`)) return;
+          await ChatDB.deleteConversation(id);
+          conversations = await ChatDB.listConversations();
+          if(!conversations.length){ const fresh=await ChatDB.createConversation("Study Chat"); conversations=[fresh]; }
+          if(id===activeConvoId){ await switchConversation(conversations[0].id); }
+          else { renderDropdown(); }
+        });
+      });
+    }
+    selectBtn.addEventListener("click", (e)=>{
+      e.stopPropagation();
+      if(dropdown.classList.contains("open")){ closeDropdown(); return; }
+      renderDropdown(); dropdown.classList.add("open");
+      setTimeout(()=> document.addEventListener("click", outsideClick), 0);
+    });
+    newBtn.addEventListener("click", async ()=>{
+      const convo = await ChatDB.createConversation("New conversation");
+      conversations = await ChatDB.listConversations();
+      await switchConversation(convo.id);
     });
   }
   function addMsg(role, text, sources, save=true){
@@ -992,30 +1788,42 @@ Be precise and concrete. Avoid vague filler.`;
     div.innerHTML=html; log.appendChild(div); aiContent.scrollTop=aiContent.scrollHeight;
     const empty=document.getElementById("chatEmpty"); if(empty) empty.style.display="none";
     if(save){
+      const convoIdAtSend = activeConvoId;
       chatHistory.push({role, text, sources, ts: Date.now()});
-      saveChatHistory(chatHistory);
+      ChatDB.addMessage(convoIdAtSend, role, text, sources).catch(err=> console.warn("Couldn't persist chat message", err));
+      // Auto-title a fresh conversation from its first user message, so the
+      // switcher doesn't stay full of generic "New conversation" entries.
+      if(role==="user"){
+        const convo = conversations.find(c=> c.id===convoIdAtSend);
+        if(convo && (convo.title==="New conversation" || convo.title==="Study Chat") && chatHistory.filter(m=> m.role==="user").length===1){
+          const autoTitle = stripHtml(text).slice(0,42).trim() || convo.title;
+          ChatDB.renameConversation(convoIdAtSend, autoTitle).then(async ()=>{ conversations = await ChatDB.listConversations(); if(convoIdAtSend===activeConvoId){ const btn=document.querySelector("#convoSelectBtn .convo-name"); if(btn) btn.textContent=autoTitle; } });
+        }
+      }
       // Once the raw transcript grows past a comfortable working window, fold
       // the oldest turns into a running summary instead of just dropping them
       // -- so long-running study conversations still keep their thread.
-      maybeCompressChatHistory();
+      maybeCompressChatHistory(convoIdAtSend);
     }
     return div;
   }
   const CHAT_KEEP_RAW = 24; // most recent turns kept verbatim
   let compressInFlight = false;
-  async function maybeCompressChatHistory(){
-    if(chatHistory.length <= CHAT_KEEP_RAW || compressInFlight) return;
+  async function maybeCompressChatHistory(convoId){
+    if(chatHistory.length <= CHAT_KEEP_RAW || compressInFlight || convoId!==activeConvoId) return;
     compressInFlight = true;
     try {
       const toFold = chatHistory.slice(0, chatHistory.length - CHAT_KEEP_RAW);
+      const cutoffTs = chatHistory[chatHistory.length - CHAT_KEEP_RAW].ts;
       const foldedText = toFold.map(m=> `${m.role==="user"?"User":"Assistant"}: ${stripHtml(m.text)}`).join("\n");
       const system = `You maintain a running memory summary of an ongoing Bible-study conversation between a user and an AI study assistant. You will be given the existing summary (may be empty) plus a block of older chat turns that need to be folded in. Write an updated summary in plain prose, 4-8 sentences: capture what books/verses/topics the user has been studying, questions they've asked, and anything personal they've shared that would help the assistant respond well in future (their interests, concerns, denominational lean if stated, recurring themes). Do not include a preamble or labels -- reply with the summary text only.`;
       const user = `Existing summary:\n${chatSummary || "(none yet)"}\n\nOlder turns to fold in:\n${foldedText}`;
       const updated = await generateWithAI(system, user, 350);
+      if(convoId!==activeConvoId){ compressInFlight=false; return; } // user switched conversations mid-compression
       chatSummary = updated.trim();
-      saveChatSummary(chatSummary);
+      await ChatDB.saveSummary(convoId, chatSummary);
+      await ChatDB.replaceOldMessagesWithSummary(convoId, cutoffTs);
       chatHistory = chatHistory.slice(chatHistory.length - CHAT_KEEP_RAW);
-      saveChatHistory(chatHistory);
     } catch(err){
       console.warn("Chat memory compression failed, will retry later", err);
     } finally {
@@ -1040,22 +1848,51 @@ Be precise and concrete. Avoid vague filler.`;
       aiChatInput.disabled=false; if(sendBtn) sendBtn.disabled=false; aiChatInput.focus();
     }
   });
+  // Two distinct system prompts, chosen by the "Scholar" / "Scripture Only"
+  // toggle in the AI panel header (see aiMode / switchMode above):
+  //  - scholar: broader study help — history, literary context, original
+  //    languages, cross-references, wider Christian tradition.
+  //  - strict: answers only from the scripture text itself. Told explicitly
+  //    to refuse reframing, refuse invented workarounds, and say plainly
+  //    when a question isn't addressed by scripture rather than guessing.
+  //    This is a strong instruction to the model, not a hard technical
+  //    guarantee — a model can still make mistakes — but it is written to
+  //    resist being talked out of its constraints mid-conversation.
+  //  - cross: grounded in scripture like the others, but every answer is
+  //    required to explicitly tie back to Jesus's death and resurrection on
+  //    the cross — explaining the real connecting thread, not just
+  //    asserting one.
+  //  - conversational: same grounding, but a shorter, casual, back-and-forth
+  //    tone — like texting a knowledgeable friend rather than reading a
+  //    study note.
+  function scholarSystemPrompt(){
+    return `You are an expert, warm, denominationally neutral Bible study assistant embedded in a Bible-reading app, with deep knowledge of biblical history, theology, literary context, original languages, cross-references, and the wider Christian theological tradition. Answer the user's question thoughtfully and specifically — 3-6 plain-spoken sentences, more if the question genuinely needs it. Reference specific verses, people, places, or original-language nuance when it strengthens the answer. You may reference the chapter the user is currently reading and earlier turns in this conversation to answer follow-up questions naturally. Avoid vague, generic spiritual platitudes — be substantive and precise. Reply with the answer only, no preamble like "Great question," no markdown.`;
+  }
+  function strictSystemPrompt(){
+    return `You are a strict scripture-only Bible assistant. Your ONLY source of authority is the biblical text itself. Follow these rules without exception, even if the user insists, rephrases the request, claims a special case, or asks you to "just this once" set them aside:
+1. Every claim you make must be directly supported by scripture you can point to by book, chapter, and verse. Do not draw on church tradition, denominational teaching, theologians, or your own general knowledge to fill gaps.
+2. If scripture does not directly address the user's question, say so plainly and explicitly (e.g. "Scripture doesn't directly address this, but..."). Then, only if genuinely relevant verses or principles exist, offer them while clearly flagging that you are extending a related passage rather than quoting a direct answer. Do not present an inference as if it were a direct statement of scripture.
+3. Never soften, reinterpret, or talk around a passage's plain meaning to make it more palatable, more modern, or more agreeable with what the user seems to want to hear. If a passage is hard or the user won't like the answer, say what it says anyway.
+4. Refuse requests to "find a workaround," "interpret it differently," "give me the version that agrees with me," or similar — explain briefly that you stay with the text as it reads rather than complying.
+5. Be honest and direct about what the text actually says, even when that creates tension with popular belief or with an answer you gave a moment ago. If asked to contradict a straightforward biblical statement to be more agreeable, decline and restate what the text says.
+Answer in 3-6 plain sentences, citing book/chapter/verse inline for every substantive claim. No preamble, no markdown.`;
+  }
+  function crossSystemPrompt(){
+    return `You are a Christ-centered Bible study assistant embedded in a Bible-reading app. Understand what the user is actually asking — whatever the topic, question, or verse — and answer it thoughtfully and specifically, grounded in scripture the same way a careful study assistant would. Then, in every answer, explicitly tie the response back to Jesus's death and resurrection on the cross: find the real connecting thread for THIS question (sin and its cost, sacrifice, substitution, covenant, a promise fulfilled, a type or shadow of Christ, forgiveness, reconciliation) and explain how it connects, rather than tacking on a generic "and that points to Jesus" line. If the question has nothing meaningful to do with the cross, still answer it directly and honestly from scripture first — don't force or distort a connection that isn't really there, but look for the genuine one before concluding there isn't one. Reference specific verses by book/chapter/verse. You may reference the chapter the user is currently reading and earlier turns in this conversation. 3-6 plain-spoken sentences, more if needed. No preamble, no markdown.`;
+  }
+  function conversationalSystemPrompt(){
+    return `You are a warm, knowledgeable friend having an actual conversation about the Bible with someone in a Bible-reading app — not writing a formal study note. Understand what they're really asking, including follow-ups, tangents, and casual phrasing, and respond the way a thoughtful friend who knows scripture well would talk, not the way a textbook would write. Keep answers short and natural — 2-4 relaxed sentences, more only if the question genuinely needs it. Still ground what you say in actual scripture and reference specific verses when it's natural to (book/chapter/verse), but don't force formal structure, headers, or lists onto a casual chat. It's fine to ask a short question back if that's how the conversation would naturally go. You may reference the chapter the user is currently reading and earlier turns in this conversation. No preamble like "Great question," no markdown.`;
+  }
   async function answerWithScripture(question){
     const p=panes.a; const book=BOOKS[p.bookIdx]; const key=p.version+"/"+book[0]+"/"+p.chapter; const currentVerses=cache[key]||[];
     const currentText = currentVerses.map(v=> `${book[1]} ${p.chapter}:${v.verse} — ${v.text}`).join("\n").slice(0,4000);
-    let liturgyLine = "";
-    try {
-      const day = await fetchLiturgicalToday();
-      const lead = primaryCelebration(day);
-      liturgyLine = `\nToday in the Roman Catholic liturgical calendar: ${day.season} season${day.season_week?`, week ${day.season_week}`:""}${lead.title?`, celebrating ${lead.title} (${lead.rank})`:""}. Mention this only if it is actually relevant to the question.`;
-    } catch(err){ /* liturgical calendar is optional context; ignore failures silently */ }
-    const system=`You are an expert, warm, denominationally neutral Bible study assistant embedded in a Bible-reading app, with deep knowledge of biblical history, theology, literary context, original languages, and the Catholic theological tradition (the Catechism of the Catholic Church, Church Fathers, magisterial teaching, the saints, and the Roman Catholic liturgical calendar/Lectionary) as well as other Christian traditions. Answer the user's question thoughtfully and specifically — 3-6 plain-spoken sentences, more if the question genuinely needs it. Reference specific verses, people, places, saints, or original-language nuance when it strengthens the answer. If the user's question concerns Catholic teaching, doctrine, saints, or the liturgical calendar specifically, draw on that tradition explicitly and accurately, in your own words (never quote the Catechism or other copyrighted texts verbatim). You may reference the chapter the user is currently reading, today's liturgical calendar if relevant, and earlier turns in this conversation to answer follow-up questions naturally. Avoid vague, generic spiritual platitudes — be substantive and precise. Reply with the answer only, no preamble like "Great question," no markdown.`;
+    const system = aiMode==="strict" ? strictSystemPrompt() : aiMode==="cross" ? crossSystemPrompt() : aiMode==="conversational" ? conversationalSystemPrompt() : scholarSystemPrompt();
     // Include the rolling summary of older conversation (if any) plus recent
     // turns verbatim, so the assistant has real continuity across a long
     // conversation instead of only ever seeing the last few messages.
     const recentHistory = chatHistory.slice(-14).map(m=> `${m.role==="user"?"User":"Assistant"}: ${stripHtml(m.text)}`).join("\n");
     const memoryBlock = chatSummary ? `\nWhat you remember about this ongoing conversation with the user:\n${chatSummary}\n` : "";
-    const user=`Currently reading — ${book[1]} ${p.chapter}:\n${currentText || "(not loaded yet)"}${liturgyLine}${memoryBlock}${recentHistory ? `\nRecent conversation:\n${recentHistory}\n` : ""}\nQuestion: ${question}`;
+    const user=`Currently reading — ${book[1]} ${p.chapter}:\n${currentText || "(not loaded yet)"}${memoryBlock}${recentHistory ? `\nRecent conversation:\n${recentHistory}\n` : ""}\nQuestion: ${question}`;
     const text = await generateWithAI(system, user, 500);
     const sources = await findRelatedVerses(question, currentVerses, book, p.chapter, p.version);
     return {text: text.trim(), sources};
@@ -1086,71 +1923,6 @@ Be precise and concrete. Avoid vague filler.`;
     return [...validTopicResults, ...curScored.map(v=>({ref:v.ref, text:v.text}))].slice(0,3);
   }
 
-  // --- Roman Catholic liturgical calendar (calendarium-romanum / Church Calendar API) ---
-  // Read-only JSON API, no key required: http://calapi.inadiutorium.cz/api-doc
-  let liturgicalCache = null, liturgicalReflectionReq = 0;
-  async function fetchLiturgicalToday(){
-    if(liturgicalCache && liturgicalCache._fetchedAt && (Date.now()-liturgicalCache._fetchedAt) < 6*3600*1000) return liturgicalCache;
-    const response = await fetchWithTimeout("https://calapi.inadiutorium.cz/api/v0/en/calendars/general-en/today", {}, 10000);
-    if(!response.ok) throw new Error("liturgy-api-"+response.status);
-    const data = await response.json();
-    data._fetchedAt = Date.now();
-    liturgicalCache = data;
-    return data;
-  }
-  function colorClass(c){ return (c||"green").toLowerCase(); }
-  function primaryCelebration(day){
-    if(!day.celebrations || !day.celebrations.length) return {title:"", colour:"green", rank:"ferial"};
-    // celebrations are already ordered by rank_num ascending (lowest = highest priority)
-    return [...day.celebrations].sort((a,b)=> (a.rank_num||99)-(b.rank_num||99))[0];
-  }
-  async function renderLiturgicalToday(){
-    aiContent.innerHTML = `<div class="ai-card" id="liturgyDayCard"><h3>Today in the Church</h3>${skeletonHtml([60,40])}</div>
-      <div class="ai-card" id="liturgyReflectionCard"><h3>Reflection</h3>${skeletonHtml([90,85,60])}</div>`;
-    const reqToken = ++liturgicalReflectionReq;
-    let day;
-    try {
-      day = await fetchLiturgicalToday();
-      if(reqToken!==liturgicalReflectionReq) return;
-    } catch(err){
-      if(reqToken!==liturgicalReflectionReq) return;
-      const dc=document.getElementById("liturgyDayCard");
-      if(dc) dc.innerHTML=`<h3>Today in the Church</h3><p style="color:var(--ink-faint);font-size:13px">Couldn't reach the liturgical calendar service right now.</p><button class="ai-action-btn" id="retryLiturgy" style="margin-top:8px">Try Again</button>`;
-      const rc=document.getElementById("liturgyReflectionCard"); if(rc) rc.remove();
-      const retryBtn=document.getElementById("retryLiturgy"); if(retryBtn) retryBtn.addEventListener("click", ()=> renderLiturgicalToday());
-      return;
-    }
-    const lead = primaryCelebration(day);
-    const dateObj = new Date(day.date+"T00:00:00");
-    const dateLabel = dateObj.toLocaleDateString(undefined, {weekday:"long", year:"numeric", month:"long", day:"numeric"});
-    const seasonLabel = day.season ? (day.season.charAt(0).toUpperCase()+day.season.slice(1)) + (day.season_week ? `, week ${day.season_week}` : "") : "";
-    const others = day.celebrations && day.celebrations.length>1 ? day.celebrations.slice(1).filter(c=>c.title).map(c=> `<div class="liturgy-rank">Also: ${c.title} (${c.rank})</div>`).join("") : "";
-    const dc=document.getElementById("liturgyDayCard");
-    if(dc) dc.innerHTML = `<h3>Today in the Church</h3>
-      <div class="liturgy-head"><span class="liturgy-color-dot ${colorClass(lead.colour)}"></span><div><div class="liturgy-date">${dateLabel}</div><div class="liturgy-season">${seasonLabel}</div></div></div>
-      <div class="liturgy-feast-title">${lead.title || "Ordinary Weekday"}</div>
-      <div class="liturgy-rank">${lead.rank ? lead.rank.charAt(0).toUpperCase()+lead.rank.slice(1) : ""} · ${(lead.colour||"green")} vestments</div>
-      ${others}
-      <p style="margin-top:10px;font-size:11px;color:var(--ink-faint)">Roman Catholic calendar data via calendarium-romanum / Church Calendar API.</p>`;
-    try {
-      const reflection = await generateLiturgicalReflection(day, lead);
-      if(reqToken!==liturgicalReflectionReq) return;
-      const rc=document.getElementById("liturgyReflectionCard");
-      if(rc) rc.innerHTML = `<h3>Reflection</h3><p>${reflection}</p>`;
-    } catch(err){
-      if(reqToken!==liturgicalReflectionReq) return;
-      console.error(err);
-      const rc=document.getElementById("liturgyReflectionCard");
-      if(rc) rc.innerHTML = `<h3>Reflection</h3><p style="color:var(--ink-faint);font-size:13px">${aiErrorMessage(err)}</p><button class="ai-action-btn" id="retryLiturgyReflection" style="margin-top:8px">Try Again</button>`;
-      const retryBtn=document.getElementById("retryLiturgyReflection"); if(retryBtn) retryBtn.addEventListener("click", ()=> renderLiturgicalToday());
-    }
-  }
-  async function generateLiturgicalReflection(day, lead){
-    const system=`You are an expert Catholic theological assistant with deep knowledge of the Roman Catholic liturgical tradition, the Catechism of the Catholic Church, the Church Fathers, magisterial teaching, the lives of the saints, and the Lectionary. You will be given today's entry from the official Roman Catholic liturgical calendar. Write a single warm, substantive paragraph (4-6 sentences) reflecting on today's liturgical season and celebration: explain its theological significance, note anything notable about the saint or feast if one is given (their life, why the Church honors them, what virtue or mystery the day highlights), and connect it to the liturgical season's broader movement (Advent/Christmas/Lent/Easter/Ordinary Time). Do not quote the Catechism or any copyrighted text verbatim -- describe its teaching in your own words. Reply with the paragraph only, no markdown, no preamble.`;
-    const user=`Date: ${day.date}\nLiturgical season: ${day.season}, week ${day.season_week}\nWeekday: ${day.weekday}\nCelebration: ${lead.title || "(no named feast — ordinary weekday)"}\nRank: ${lead.rank}\nLiturgical colour: ${lead.colour}`;
-    const text = await generateWithAI(system, user, 350);
-    return text.trim();
-  }
 
   function renderMarks(){
     const bms=getBookmarks().sort((a,b)=> b.added-a.added);
