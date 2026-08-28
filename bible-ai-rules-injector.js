@@ -1,22 +1,4 @@
-/* bible-ai-rules-injector.js
-   Applies the rules from bible-ai-rules.js to every AI call the app
-   makes. You shouldn't need to edit this file -- edit
-   bible-ai-rules.js instead.
 
-   Why this exists: the app's AI code (system prompts, generateWithAI,
-   etc.) lives entirely inside index.html's own inline <script>, in a
-   closure that isn't exposed to other files -- there's no
-   window.generateWithAI or window.someSystemPrompt to hook into
-   directly. But every one of its AI calls (Chapter, Verse, Outline,
-   Compare, Chatbot) ends up doing the same thing: a plain
-   window.fetch() to one of two free providers --
-     - https://api.llm7.io/v1/chat/completions
-     - https://text.pollinations.ai/openai
-   -- with a JSON body containing messages: [{role:"system", ...}, ...].
-   That's a real, public, load-bearing browser API, so this file wraps
-   window.fetch *before* the app ever calls it, and folds the rules
-   into the outgoing "system" message right before it's sent -- without
-   needing to touch or understand the app's own closures.
 */
 (function () {
   "use strict";
@@ -30,7 +12,7 @@
 
   function urlFromArgs(input) {
     if (typeof input === "string") return input;
-    if (input && typeof input.url === "string") return input.url; // Request object
+    if (input && typeof input.url === "string") return input.url; 
     return "";
   }
 
@@ -50,7 +32,7 @@
     try {
       parsed = JSON.parse(bodyText);
     } catch (e) {
-      return bodyText; // not JSON, or not the shape we expect -- leave untouched
+      return bodyText; 
     }
     if (!parsed || !Array.isArray(parsed.messages)) return bodyText;
 
