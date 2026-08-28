@@ -1,9 +1,4 @@
-/* bible-extras.css
-   Styling for the translations added by bible-extras-versions.js.
-   Loaded into the existing Bible Reader page, so it reuses that page's own
-   CSS variables (--gold, --bg, etc.) already defined on :root -- with
-   fallback values in case this file is ever used somewhere those aren't
-   defined. */
+
 
 .bible-extra-version {
   font-weight: 600;
@@ -28,6 +23,6 @@
 
 @media (max-width: 640px) {
   .bible-extra-badge {
-    display: none; /* header row is already tight on small screens */
+    display: none; 
   }
 }
